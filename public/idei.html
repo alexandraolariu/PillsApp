@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Stock Management</title>
+    <!-- Tailwind CSS CDN for styling -->
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* Table specific styles for responsiveness */
+        @media screen and (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid #ccc;
+                margin-bottom: 0.625em;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td:before {
+                position: absolute;
+                top: 0;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                content: attr(data-label); /* Use data-label for content */
+            }
+            td:last-child {
+                border-bottom: 0;
+            }
+            .table-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding-top: 10px;
+            }
+        }
+
+        /* Styles for Bon Fiscal Modal */
+        #bon-fiscal-modal .modal-content {
+            max-width: 600px;
+            text-align: left;
+            font-family: 'monospace'; /* For a receipt-like feel */
+            font-size: 0.9em;
+        }
+        #bon-fiscal-content h2, #bon-fiscal-content h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #bon-fiscal-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        #bon-fiscal-content table th, #bon-fiscal-content table td {
+            border-bottom: 1px dashed #ccc;
+            padding: 5px 0;
+        }
+        #bon-fiscal-content table th:nth-child(1),
+        #bon-fiscal-content table td:nth-child(1) { width: 50%; text-align: left; }
+        #bon-fiscal-content table th:nth-child(2),
+        #bon-fiscal-content table td:nth-child(2) { width: 15%; text-align: center; }
+        #bon-fiscal-content table th:nth-child(3),
+        #bon-fiscal-content table td:nth-child(3) { width: 15%; text-align: right; }
+        #bon-fiscal-content table th:nth-child(4),
+        #bon-fiscal-content table td:nth-child(4) { width: 20%; text-align: right; }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #bon-fiscal-modal, #bon-fiscal-modal * {
+                visibility: visible;
+            }
+            #bon-fiscal-modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: auto;
+                height: auto;
+                overflow: visible;
+                background-color: transparent;
+            }
+            #bon-fiscal-modal .modal-content {
+                box-shadow: none;
+                max-width: none;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border-radius: 0;
+            }
+            #bon-fiscal-modal .close-button, #bon-fiscal-modal .print-button {
+                display: none; /* Hide buttons when printing */
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-4xl font-bold text-center text-indigo-700 mb-8">Pharmacy Stock Overview</h1>
+
+        <div id="loading-indicator" class="text-center text-lg text-gray-600 mb-4 hidden">Loading stock data...</div>
+        <div id="error-message" class="text-center text-lg text-red-600 mb-4 hidden"></div>
+        <div id="user-id-display" class="text-sm text-gray-500 text-center mb-6"></div>
+
+        <!-- Search Bar -->
+        <div class="mb-6 p-4 bg-gray-100 rounded-lg shadow-inner flex flex-col md:flex-row items-center justify-between">
+            <label for="searchPills" class="block text-gray-700 text-sm font-bold mb-2 md:mb-0 md:mr-4">Search Pills:</label>
+            <input type="text" id="searchPills" placeholder="Search by name, indications, contraindications, or form..."
+                   class="shadow appearance-none border rounded-lg w-full md:flex-grow py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                   onkeyup="searchPills()">
+        </div>
+
+        <!-- Pills Display Area - Table -->
+        <div class="overflow-x-auto rounded-lg shadow-md mb-8">
+            <table id="pills-list-table" class="min-w-full bg-white border-collapse">
+                <thead>
+                    <tr class="bg-indigo-600 text-white text-left text-sm leading-4 tracking-wider">
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Pill Name</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Quantity</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Expiry Date</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Price ($)</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Indications</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Contraindications</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Form</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700">Barcode</th>
+                        <th class="px-6 py-3 border-b-2 border-indigo-700 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pills-table-body" class="divide-y divide-gray-200">
+                    <!-- Pills will be dynamically loaded here -->
+                </tbody>
+            </table>
+            <p id="no-pills-message" class="text-center text-gray-500 py-4 hidden">No pills in stock yet. Add some above!</p>
+        </div>
+
+        <!-- Basket Section -->
+        <div class="p-6 bg-green-50 rounded-lg shadow-inner mb-8">
+            <h2 class="text-2xl font-semibold text-green-700 mb-4">Basket</h2>
+            <div class="overflow-x-auto mb-4">
+                <table class="min-w-full bg-white border-collapse">
+                    <thead>
+                        <tr class="bg-green-600 text-white text-left text-sm leading-4 tracking-wider">
+                            <th class="px-4 py-2 border-b-2 border-green-700">Item</th>
+                            <th class="px-4 py-2 border-b-2 border-green-700 text-center">Qty</th>
+                            <th class="px-4 py-2 border-b-2 border-green-700 text-right">Price</th>
+                            <th class="px-4 py-2 border-b-2 border-green-700 text-right">Subtotal</th>
+                            <th class="px-4 py-2 border-b-2 border-green-700 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="basket-table-body" class="divide-y divide-gray-200">
+                        <!-- Basket items will be loaded here -->
+                        <tr id="empty-basket-message">
+                            <td colspan="5" class="text-center text-gray-500 py-4">Basket is empty. Add pills from the stock above!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end items-center mb-4">
+                <span class="text-xl font-bold text-gray-800 mr-4">Total: $<span id="basket-total">0.00</span></span>
+                <button id="generate-bon-fiscal-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md" disabled>Generate Bon Fiscal</button>
+            </div>
+        </div>
+
+        <!-- Add to Basket by Barcode Section -->
+        <div class="mb-8 p-6 bg-yellow-50 rounded-lg shadow-inner">
+            <h2 class="text-2xl font-semibold text-yellow-700 mb-4">Add to Basket by Barcode</h2>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <input type="text" id="barcodeInput" placeholder="Enter barcode or scan here..."
+                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       onkeyup="if(event.keyCode === 13) addByBarcode()">
+                <button onclick="addByBarcode()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md">Add by Barcode</button>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+                * For actual barcode scanning, you would integrate a webcam-based scanner library here.
+                This input field simulates manual entry or a scanner output.
+            </p>
+        </div>
+
+        <!-- Add New Pill Form (Moved to last) -->
+        <div class="p-6 bg-indigo-50 rounded-lg shadow-inner">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Add New Pill</h2>
+            <form id="add-pill-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="pillName" class="block text-gray-700 text-sm font-bold mb-2">Pill Name:</label>
+                    <input type="text" id="pillName" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="pillQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+                    <input type="number" id="pillQuantity" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" required>
+                </div>
+                <div>
+                    <label for="pillExpiryDate" class="block text-gray-700 text-sm font-bold mb-2">Expiry Date:</label>
+                    <input type="date" id="pillExpiryDate" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="pillPrice" class="block text-gray-700 text-sm font-bold mb-2">Price ($):</label>
+                    <input type="number" id="pillPrice" step="0.01" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" required>
+                </div>
+                <div>
+                    <label for="pillIndications" class="block text-gray-700 text-sm font-bold mb-2">Indications:</label>
+                    <input type="text" id="pillIndications" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="pillContraindications" class="block text-gray-700 text-sm font-bold mb-2">Contraindications:</label>
+                    <input type="text" id="pillContraindications" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="pillForm" class="block text-gray-700 text-sm font-bold mb-2">Form (e.g., Tablet, Syrup):</label>
+                    <input type="text" id="pillForm" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="pillCodDeBare" class="block text-gray-700 text-sm font-bold mb-2">Cod de Bare (Barcode):</label>
+                    <input type="text" id="pillCodDeBare" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md">Add Pill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Pill Modal -->
+    <div id="edit-pill-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEditModal()">&times;</span>
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Edit Pill</h2>
+            <form id="edit-pill-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="editPillId">
+                <div>
+                    <label for="editPillName" class="block text-gray-700 text-sm font-bold mb-2">Pill Name:</label>
+                    <input type="text" id="editPillName" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="editPillQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+                    <input type="number" id="editPillQuantity" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" required>
+                </div>
+                <div>
+                    <label for="editPillExpiryDate" class="block text-gray-700 text-sm font-bold mb-2">Expiry Date:</label>
+                    <input type="date" id="editPillExpiryDate" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div>
+                    <label for="editPillPrice" class="block text-gray-700 text-sm font-bold mb-2">Price ($):</label>
+                    <input type="number" id="editPillPrice" step="0.01" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" required>
+                </div>
+                <div>
+                    <label for="editPillIndications" class="block text-gray-700 text-sm font-bold mb-2">Indications:</label>
+                    <input type="text" id="editPillIndications" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="editPillContraindications" class="block text-gray-700 text-sm font-bold mb-2">Contraindications:</label>
+                    <input type="text" id="editPillContraindications" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="editPillForm" class="block text-gray-700 text-sm font-bold mb-2">Form (e.g., Tablet, Syrup):</label>
+                    <input type="text" id="editPillForm" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div>
+                    <label for="editPillCodDeBare" class="block text-gray-700 text-sm font-bold mb-2">Cod de Bare (Barcode):</label>
+                    <input type="text" id="editPillCodDeBare" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md">Update Pill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Box Modal -->
+    <div id="message-modal" class="modal">
+        <div class="modal-content text-center">
+            <span class="close-button" onclick="closeMessageModal()">&times;</span>
+            <p id="message-text" class="text-lg font-medium text-gray-800 mb-4"></p>
+            <button onclick="closeMessageModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">OK</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content text-center">
+            <p id="confirm-text" class="text-lg font-medium text-gray-800 mb-6">Are you sure?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-yes-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">Yes</button>
+                <button id="confirm-no-btn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bon Fiscal Modal -->
+    <div id="bon-fiscal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeBonFiscalModal()">&times;</span>
+            <div id="bon-fiscal-content" class="p-4">
+                <!-- Bon fiscal content will be generated here -->
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="printBonFiscal()" class="print-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">Print Bon Fiscal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and app ID are provided globally by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null; // Store the user ID (Firebase UID)
+        let allPills = []; // Global array to store all pills for client-side filtering
+        let basket = []; // Global array to store items in the basket
+
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessageDisplay = document.getElementById('error-message');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const pillsTableBody = document.getElementById('pills-table-body');
+        const addPillForm = document.getElementById('add-pill-form');
+        const noPillsMessage = document.getElementById('no-pills-message');
+        const searchPillsInput = document.getElementById('searchPills');
+
+        const editPillModal = document.getElementById('edit-pill-modal');
+        const editPillForm = document.getElementById('edit-pill-form');
+        const editPillIdInput = document.getElementById('editPillId');
+        const editPillNameInput = document.getElementById('editPillName');
+        const editPillQuantityInput = document.getElementById('editPillQuantity');
+        const editPillExpiryDateInput = document.getElementById('editPillExpiryDate');
+        const editPillPriceInput = document.getElementById('editPillPrice');
+        const editPillIndicationsInput = document.getElementById('editPillIndications');
+        const editPillContraindicationsInput = document.getElementById('editPillContraindications');
+        const editPillFormInput = document.getElementById('editPillForm');
+        const editPillCodDeBareInput = document.getElementById('editPillCodDeBare'); // New edit input
+
+        const messageModal = document.getElementById('message-modal');
+        const messageText = document.getElementById('message-text');
+
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmText = document.getElementById('confirm-text');
+        const confirmYesBtn = document.getElementById('confirm-yes-btn');
+        const confirmNoBtn = document.getElementById('confirm-no-btn');
+        let confirmCallback = null;
+
+        const basketTableBody = document.getElementById('basket-table-body');
+        const basketTotalSpan = document.getElementById('basket-total');
+        const emptyBasketMessage = document.getElementById('empty-basket-message');
+        const generateBonFiscalBtn = document.getElementById('generate-bon-fiscal-btn');
+        const barcodeInput = document.getElementById('barcodeInput'); // New barcode input for adding to basket
+
+        const bonFiscalModal = document.getElementById('bon-fiscal-modal');
+        const bonFiscalContent = document.getElementById('bon-fiscal-content');
+
+        // --- Utility Functions for Modals ---
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageModal.style.display = 'flex';
+        }
+
+        window.closeMessageModal = function() {
+            messageModal.style.display = 'none';
+        }
+
+        window.openEditModal = function(pillId, name, quantity, expiryDate, price, indications, contraindications, form, codDeBare) {
+            editPillIdInput.value = pillId;
+            editPillNameInput.value = name;
+            editPillQuantityInput.value = quantity;
+            editPillExpiryDateInput.value = expiryDate;
+            editPillPriceInput.value = price;
+            editPillIndicationsInput.value = indications || '';
+            editPillContraindicationsInput.value = contraindications || '';
+            editPillFormInput.value = form || '';
+            editPillCodDeBareInput.value = codDeBare || ''; // Populate new field
+            editPillModal.style.display = 'flex';
+        }
+
+        window.closeEditModal = function() {
+            editPillModal.style.display = 'none';
+        }
+
+        window.closeBonFiscalModal = function() {
+            bonFiscalModal.style.display = 'none';
+        }
+
+        // Custom Confirmation Modal Functions
+        function showConfirmModal(message, callback) {
+            confirmText.textContent = message;
+            confirmCallback = callback;
+            confirmModal.style.display = 'flex';
+        }
+
+        function closeConfirmModal() {
+            confirmModal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        confirmYesBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback(true);
+            }
+            closeConfirmModal();
+        });
+
+        confirmNoBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback(false);
+            }
+            closeConfirmModal();
+        });
+
+        // --- Authentication and Firestore Setup ---
+        onAuthStateChanged(auth, async (user) => {
+            loadingIndicator.classList.remove('hidden');
+            errorMessageDisplay.classList.add('hidden');
+
+            try {
+                if (user) {
+                    userId = user.uid;
+                    userIdDisplay.textContent = `Logged in as: ${user.email || user.uid}`;
+                } else {
+                    if (initialAuthToken) {
+                        const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                        userId = userCredential.user.uid;
+                        userIdDisplay.textContent = `Logged in as: ${userCredential.user.email || userCredential.user.uid}`;
+                    } else {
+                        const userCredential = await signInAnonymously(auth);
+                        userId = userCredential.user.uid;
+                        userIdDisplay.textContent = `Logged in anonymously (ID: ${userCredential.user.uid})`;
+                    }
+                }
+                setupFirestoreListener(userId);
+
+            } catch (error) {
+                console.error("Authentication Error:", error);
+                errorMessageDisplay.textContent = `Authentication failed: ${error.message}. Please try again.`;
+                errorMessageDisplay.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            }
+        });
+
+        function setupFirestoreListener(currentUserId) {
+            if (!currentUserId) {
+                console.error("User ID is not available for Firestore listener.");
+                errorMessageDisplay.textContent = "Cannot load stock data: User not authenticated.";
+                errorMessageDisplay.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+                return;
+            }
+
+            const pillsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/pills_stock`);
+            const q = query(pillsCollectionRef);
+
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.classList.add('hidden');
+                allPills = [];
+                snapshot.forEach(doc => {
+                    allPills.push({ id: doc.id, ...doc.data() });
+                });
+                searchPills(); // Re-render the table with current search filter
+            }, (error) => {
+                console.error("Error fetching pills:", error);
+                errorMessageDisplay.textContent = `Failed to load pills: ${error.message}`;
+                errorMessageDisplay.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            });
+        }
+
+        // --- Stock Table Rendering and Search ---
+        function renderPillsTable(pillsToDisplay) {
+            pillsTableBody.innerHTML = '';
+            if (pillsToDisplay.length === 0) {
+                noPillsMessage.classList.remove('hidden');
+            } else {
+                noPillsMessage.classList.add('hidden');
+                pillsToDisplay.forEach(pill => {
+                    renderPillRow(pill.id, pill);
+                });
+            }
+        }
+
+        function renderPillRow(id, pill) {
+            const tableRow = document.createElement('tr');
+            tableRow.id = `pill-${id}`;
+            tableRow.classList.add('hover:bg-gray-50');
+            tableRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" data-label="Pill Name">${pill.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Quantity">${pill.quantity}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Expiry Date">${pill.expiryDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Price ($)">$${pill.price.toFixed(2)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Indications">${pill.indications || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Contraindications">${pill.contraindications || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Form">${pill.form || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="Barcode">${pill.codDeBare || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium table-actions">
+                    <button onclick="openEditModal('${id}', '${pill.name}', ${pill.quantity}, '${pill.expiryDate}', ${pill.price}, '${pill.indications || ''}', '${pill.contraindications || ''}', '${pill.form || ''}', '${pill.codDeBare || ''}')"
+                            class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Edit</button>
+                    <button onclick="deletePill('${id}')"
+                            class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Delete</button>
+                    <button onclick="addToBasket('${id}')"
+                            class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm">Add to Basket</button>
+                </td>
+            `;
+            pillsTableBody.appendChild(tableRow);
+        }
+
+        window.searchPills = function() {
+            const searchTerm = searchPillsInput.value.toLowerCase().trim();
+            if (!searchTerm) {
+                renderPillsTable(allPills);
+                return;
+            }
+
+            const filteredPills = allPills.filter(pill => {
+                const nameMatch = pill.name.toLowerCase().includes(searchTerm);
+                const indicationsMatch = (pill.indications || '').toLowerCase().includes(searchTerm);
+                const contraindicationsMatch = (pill.contraindications || '').toLowerCase().includes(searchTerm);
+                const formMatch = (pill.form || '').toLowerCase().includes(searchTerm);
+                const barcodeMatch = (pill.codDeBare || '').toLowerCase().includes(searchTerm);
+                return nameMatch || indicationsMatch || contraindicationsMatch || formMatch || barcodeMatch;
+            });
+            renderPillsTable(filteredPills);
+        };
+
+        // --- Add/Edit/Delete Pill Functions ---
+        addPillForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userId) {
+                showMessage("Please wait for authentication to complete.");
+                return;
+            }
+
+            const name = document.getElementById('pillName').value;
+            const quantity = parseInt(document.getElementById('pillQuantity').value);
+            const expiryDate = document.getElementById('pillExpiryDate').value;
+            const price = parseFloat(document.getElementById('pillPrice').value);
+            const indications = document.getElementById('pillIndications').value;
+            const contraindications = document.getElementById('pillContraindications').value;
+            const form = document.getElementById('pillForm').value;
+            const codDeBare = document.getElementById('pillCodDeBare').value; // New field
+
+            if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
+                showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
+                return;
+            }
+
+            try {
+                const pillsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/pills_stock`);
+                await addDoc(pillsCollectionRef, {
+                    name,
+                    quantity,
+                    expiryDate,
+                    price,
+                    indications,
+                    contraindications,
+                    form,
+                    codDeBare // Save new field
+                });
+                showMessage("Pill added successfully!");
+                addPillForm.reset();
+            } catch (error) {
+                console.error("Error adding pill:", error);
+                showMessage(`Error adding pill: ${error.message}`);
+            }
+        });
+
+        editPillForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userId) {
+                showMessage("Please wait for authentication to complete.");
+                return;
+            }
+
+            const pillId = editPillIdInput.value;
+            const name = editPillNameInput.value;
+            const quantity = parseInt(editPillQuantityInput.value);
+            const expiryDate = editPillExpiryDateInput.value;
+            const price = parseFloat(editPillPriceInput.value);
+            const indications = editPillIndicationsInput.value;
+            const contraindications = editPillContraindicationsInput.value;
+            const form = editPillFormInput.value;
+            const codDeBare = editPillCodDeBareInput.value; // New field
+
+            if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
+                showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
+                return;
+            }
+
+            try {
+                const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, pillId);
+                await updateDoc(pillDocRef, {
+                    name,
+                    quantity,
+                    expiryDate,
+                    price,
+                    indications,
+                    contraindications,
+                    form,
+                    codDeBare // Update new field
+                });
+                showMessage("Pill updated successfully!");
+                closeEditModal();
+            } catch (error) {
+                console.error("Error updating pill:", error);
+                showMessage(`Error updating pill: ${error.message}`);
+            }
+        });
+
+        window.deletePill = async function(pillId) {
+            if (!userId) {
+                showMessage("Please wait for authentication to complete.");
+                return;
+            }
+
+            showConfirmModal("Are you sure you want to delete this pill?", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, pillId);
+                        await deleteDoc(pillDocRef);
+                        showMessage("Pill deleted successfully!");
+                    } catch (error) {
+                        console.error("Error deleting pill:", error);
+                        showMessage(`Error deleting pill: ${error.message}`);
+                    }
+                } else {
+                    showMessage("Pill deletion cancelled.");
+                }
+            });
+        };
+
+        // --- Basket Functions ---
+        window.addToBasket = function(pillId) {
+            const pillToAdd = allPills.find(p => p.id === pillId);
+            if (!pillToAdd) {
+                showMessage("Pill not found in stock.");
+                return;
+            }
+
+            if (pillToAdd.quantity <= 0) {
+                showMessage(`${pillToAdd.name} is out of stock.`);
+                return;
+            }
+
+            const existingBasketItem = basket.find(item => item.id === pillId);
+
+            if (existingBasketItem) {
+                if (existingBasketItem.quantity < pillToAdd.quantity) {
+                    existingBasketItem.quantity++;
+                    showMessage(`${pillToAdd.name} quantity increased in basket.`);
+                } else {
+                    showMessage(`Maximum available quantity (${pillToAdd.quantity}) for ${pillToAdd.name} reached in basket.`);
+                }
+            } else {
+                basket.push({
+                    id: pillToAdd.id,
+                    name: pillToAdd.name,
+                    price: pillToAdd.price,
+                    quantity: 1,
+                    originalStockQuantity: pillToAdd.quantity // Store original stock for validation
+                });
+                showMessage(`${pillToAdd.name} added to basket.`);
+            }
+            renderBasket();
+        };
+
+        window.updateBasketItemQuantity = function(pillId, newQuantity) {
+            const itemIndex = basket.findIndex(item => item.id === pillId);
+            if (itemIndex === -1) return;
+
+            const pillInStock = allPills.find(p => p.id === pillId);
+            if (!pillInStock) return;
+
+            if (newQuantity <= 0) {
+                removeFromBasket(pillId);
+                return;
+            }
+
+            if (newQuantity > pillInStock.quantity) {
+                showMessage(`Cannot add more than available stock (${pillInStock.quantity}) for ${basket[itemIndex].name}.`);
+                basket[itemIndex].quantity = pillInStock.quantity; // Cap at available stock
+            } else {
+                basket[itemIndex].quantity = newQuantity;
+            }
+            renderBasket();
+        };
+
+        window.removeFromBasket = function(pillId) {
+            basket = basket.filter(item => item.id !== pillId);
+            showMessage("Item removed from basket.");
+            renderBasket();
+        };
+
+        function renderBasket() {
+            basketTableBody.innerHTML = '';
+            let total = 0;
+
+            if (basket.length === 0) {
+                emptyBasketMessage.classList.remove('hidden');
+                generateBonFiscalBtn.disabled = true;
+            } else {
+                emptyBasketMessage.classList.add('hidden');
+                generateBonFiscalBtn.disabled = false;
+                basket.forEach(item => {
+                    const subtotal = item.quantity * item.price;
+                    total += subtotal;
+
+                    const row = document.createElement('tr');
+                    row.classList.add('hover:bg-gray-50');
+                    row.innerHTML = `
+                        <td class="px-4 py-2 text-sm font-medium text-gray-900">${item.name}</td>
+                        <td class="px-4 py-2 text-sm text-gray-500 text-center">
+                            <input type="number" min="1" value="${item.quantity}"
+                                   onchange="updateBasketItemQuantity('${item.id}', parseInt(this.value))"
+                                   class="w-16 text-center border rounded-md p-1">
+                        </td>
+                        <td class="px-4 py-2 text-sm text-gray-500 text-right">$${item.price.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-sm text-gray-500 text-right">$${subtotal.toFixed(2)}</td>
+                        <td class="px-4 py-2 text-right">
+                            <button onclick="removeFromBasket('${item.id}')"
+                                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded-lg transition duration-150 ease-in-out">Remove</button>
+                        </td>
+                    `;
+                    basketTableBody.appendChild(row);
+                });
+            }
+            basketTotalSpan.textContent = total.toFixed(2);
+        }
+
+        // --- Add to Basket by Barcode ---
+        window.addByBarcode = function() {
+            const barcode = barcodeInput.value.trim();
+            if (!barcode) {
+                showMessage("Please enter a barcode.");
+                return;
+            }
+
+            const pillFound = allPills.find(p => p.codDeBare === barcode);
+
+            if (pillFound) {
+                addToBasket(pillFound.id);
+                barcodeInput.value = ''; // Clear input after adding
+            } else {
+                showMessage(`Pill with barcode "${barcode}" not found in stock.`);
+            }
+        };
+
+
+        // --- Bon Fiscal Generation and Print ---
+        generateBonFiscalBtn.addEventListener('click', async () => {
+            if (basket.length === 0) {
+                showMessage("Basket is empty. Add items to generate a bon fiscal.");
+                return;
+            }
+
+            if (!userId) {
+                showMessage("Authentication in progress. Please wait.");
+                return;
+            }
+
+            const updates = [];
+            let allQuantitiesValid = true;
+
+            // First, validate all quantities and prepare updates
+            for (const item of basket) {
+                const pillInStock = allPills.find(p => p.id === item.id);
+                if (!pillInStock || pillInStock.quantity < item.quantity) {
+                    showMessage(`Insufficient stock for ${item.name}. Available: ${pillInStock ? pillInStock.quantity : 0}, Requested: ${item.quantity}.`);
+                    allQuantitiesValid = false;
+                    break;
+                }
+                updates.push({
+                    id: item.id,
+                    newQuantity: pillInStock.quantity - item.quantity
+                });
+            }
+
+            if (!allQuantitiesValid) {
+                return; // Stop if any quantity is invalid
+            }
+
+            try {
+                // Perform all updates
+                for (const update of updates) {
+                    const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, update.id);
+                    await updateDoc(pillDocRef, { quantity: update.newQuantity });
+                }
+
+                // Generate bon fiscal content
+                let bonFiscalHtml = `
+                    <h2 class="text-2xl font-bold mb-2">PHARMACY RECEIPT</h2>
+                    <h3 class="text-lg font-semibold mb-4">Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</h3>
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-right">Price</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                let finalTotal = 0;
+                basket.forEach(item => {
+                    const itemTotal = item.quantity * item.price;
+                    finalTotal += itemTotal;
+                    bonFiscalHtml += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-right">$${item.price.toFixed(2)}</td>
+                            <td class="text-right">$${itemTotal.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                bonFiscalHtml += `
+                        </tbody>
+                    </table>
+                    <div class="text-right mt-4 text-lg font-bold">
+                        Total: $${finalTotal.toFixed(2)}
+                    </div>
+                    <p class="text-center mt-6 text-gray-600">Thank you for your purchase!</p>
+                `;
+
+                bonFiscalContent.innerHTML = bonFiscalHtml;
+                bonFiscalModal.style.display = 'flex';
+                basket = []; // Clear basket after generating bon fiscal
+                renderBasket(); // Update basket display
+                showMessage("Bon Fiscal generated and stock updated!");
+
+            } catch (error) {
+                console.error("Error generating bon fiscal or updating stock:", error);
+                showMessage(`Error: ${error.message}. Stock might not be fully updated.`);
+            }
+        });
+
+        window.printBonFiscal = function() {
+            const printContent = document.getElementById('bon-fiscal-content').innerHTML;
+            const originalBody = document.body.innerHTML;
+
+            // Create a temporary iframe or new window for printing to isolate content
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Bon Fiscal</title>');
+            // Copy relevant styles for printing
+            printWindow.document.write('<link href="https://cdn.tailwindcss.com" rel="stylesheet">');
+            printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">');
+            printWindow.document.write('<style>body { font-family: \'Inter\', sans-serif; } table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; } th, td { border-bottom: 1px dashed #ccc; padding: 5px 0; } th:nth-child(1), td:nth-child(1) { width: 50%; text-align: left; } th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; } th:nth-child(3), td:nth-child(3) { width: 15%; text-align: right; } th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; } h2, h3 { text-align: center; margin-bottom: 10px; } .text-right { text-align: right; } .text-center { text-align: center; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close(); // Close the print window after printing
+        };
+
+        // Initial render of basket
+        renderBasket();
+
+    </script>
+</body>
+</html>

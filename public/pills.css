@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* .wrapper{
+    display: flex;
+    flex-direction: column; 
+    min-height: calc(100vh - 160px);
+} */
+main {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 250;
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(128, 128, 128, 0.13);
+
+}
+
+.container {
+    width: 1600px;
+    margin: 20px;
+    border-radius: 10px;
+    background-color: white;
+
+}
+
+.page-title {
+    font-family: "Cormorant Garamond", serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 50px;
+    color: #338f08;
+}
+
+.hidden {
+    display: none;
+}
+
+.search-section {
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    margin: 30px;
+    font-weight: 500;
+    background-color: rgba(128, 128, 128, 0.13);
+    border-radius: 10px;
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
+}
+
+#searchPills {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.527);
+}
+
+.pillsDisplayArea {
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    padding: 30px;
+    padding-top: 0;
+    margin: 30px;
+    background-color: rgba(128, 128, 128, 0.13);
+    border-radius: 10px;
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
+    height: 400px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin-top: 1rem;
+}
+
+th,
+td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+thead {
+    display: table-header-group;
+}
+
+thead th {
+    background-color: #2c8831;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    border-left: none;
+    border-right: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+thead tr th:first-child {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+
+thead tr th:last-child {
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+td.expiry-date {
+    width: 130px;
+}
+
+/* .pill-name{
+    width: 150px;
+} */
+
+.pill-quantity {
+    width: 50px;
+}
+
+/* .pill-indication{
+    min-width: 250px;
+}
+.pill-contraindication{
+    min-width: 250px;
+} */
+
+.table-actions {
+    width: 275px;
+}
+
+.basket-section {
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    margin: 30px;
+    font-weight: 500;
+    background-color: rgba(128, 128, 128, 0.13);
+    border-radius: 10px;
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* button {
+    padding: 10px 20px 10px 20px;
+    border-radius: 10px;
+    border: 0;
+    background-color: #216104;
+    color: white;
+} */
+
+/* button:hover {
+    background-color: #194903;
+    cursor: pointer;
+} */
+
+.total {
+    text-align: right;
+    font-size: 20px;
+}
+
+.addPills-section {
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    margin: 30px;
+    font-weight: 500;
+    background-color: rgba(128, 128, 128, 0.13);
+    border-radius: 10px;
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
+}
+
+
+form {
+    display: block;
+    columns: 2;
+}
+
+
+.text-red {
+    color: red;
+
+}
+
+.expiry-date {
+    width: 100px;
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    text-align: left;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+

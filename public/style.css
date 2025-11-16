@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+main, footer{
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 250;
+    font-style: normal;
+}
+h1{
+   font-family: "Cormorant Garamond", serif;
+   font-optical-sizing: auto;
+   font-weight: 700;
+   font-style: normal;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column; 
+    min-height: calc(100vh - 160px);
+}
+main{
+    display: flex;
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+#auth-forms{
+    display: grid;
+    font-size: 30px;
+    text-align: center;
+    align-items: center;
+    align-content: center;
+    width: 350px;
+    /* margin-top: 200px;  */
+}
+#auth-forms input[type="email"],
+#auth-forms input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+#auth-forms button {
+    width: 100%;
+    padding: 14px;
+    background-color: #338f08;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+#auth-forms button:hover {
+    background-color: #2d8007;
+}
+
+.container-wrapper{
+    display: grid; /* Make the wrapper a grid container */
+    grid-template-columns: repeat(3, 0.5fr); /* 3 columns, each taking equal space */
+    gap: 50px; /* Space between grid items */
+    width: fit-content; /* Make the wrapper's width fit its content */
+    margin: 0 auto; /* Center the grid wrapper itself */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;    /* Centers vertically */
+    min-height: 100vh;      /* Ensures it takes at least the full viewport height */
+    width: 100%;
+        
+}
+
+.container-index{
+    text-align: center;
+    border: 5px solid black;
+    flex: 1 1 280px; /* Allow containers to grow, shrink, and have a base width */
+    min-width: 280px; /* Minimum width for each container */
+}
+
+footer{
+    height: 150px;
+    background-color: #1E201E;
+    width: 100%;
+    border-top:#338f08 solid 10px;
+    color: white;
+}

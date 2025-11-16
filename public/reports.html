@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>💊Reports</title>
+    <link rel="stylesheet" href="pills.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body lang="en">
+
+    <main>
+        <nav
+            class="w-full fixed z-50 top-0 flex justify-start space-x-10 items-center bg-zinc-800 px-6 py-3 text-white font-sans">
+            <div id="user-info" class="font-semibold" style="display: none;">
+                <p>👤<span id="user-email"></span></p>
+            </div>
+            <button id="signout-button" class="hover:text-red-300 font-semibold">Sign Out</button>
+            <a href="pills.html" class="hover:text-green-700 font-semibold">Pills Stock</a>
+            <a href="mailto:alexandraolariu2000@gmail.com?subject=Help%20for%20aplication&body=Hi%20Alexandra,%20I%20have%20a%20question..."
+                class="hover:text-green-700 font-semibold">Help</a>
+        </nav>
+        <div class="container mt-[90px]"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+
+            <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold text-yellow-600">Low stock ≤ 20</h3>
+                <div class="overflow-x-auto rounded-lg">
+                    <div class="overflow-y-auto max-h-[500px] rounded-lg">
+                        <table class="min-w-full text-sm">
+                            <thead class="list-header text-indigo-800 font-bold">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Name</th>
+                                    <th class="px-4 py-2 text-left">Barcode</th>
+                                    <th class="px-4 py-2 text-center cursor-pointer" onclick="filterPillsLowQuantity()">
+                                        Quantity↑↓</th>
+                                    <th class="px-4 py-2 text-right">Expiry Date</th>
+                                    <th class="px-4 py-2 text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="low-stock-body" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-gray-500">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+                <button
+                    class="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-1 px-3 rounded-lg shadow-md"
+                    onclick="exportToExcel()">Export to Excel</button>
+            </div>
+
+
+            <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold text-red-400">Expiry Pills</h3>
+                <div class="overflow-x-auto rounded-lg">
+                    <div class="overflow-y-auto max-h-[500px] rounded-lg">
+                        <table class="min-w-full text-sm">
+                            <thead class="list-header text-indigo-800 font-bold">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Name</th>
+                                    <th class="px-4 py-2 text-left">Barcode</th>
+                                    <th class="px-4 py-2 text-center">Quantity</th>
+                                    <th class="px-4 py-2 text-left cursor-pointer whitespace-nowrap" onclick="filterPillsExpiryDate()">Expiry Date↑↓</th>
+                                    <th class="px-4 py-2 text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expiring-body" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-gray-500">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <button class="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg shadow-md"
+                    onclick="exportToExcel2()">Export to Excel</button>
+            </div>
+        </div>
+
+    </main>
+
+
+
+
+    <script type="module" src="reports.js"></script>
+</body>
+
+
+</html>
