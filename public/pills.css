@@ -177,7 +177,7 @@ td.expiry-date {
     font-size: 20px;
 }
 
-.addPills-section {
+.addPills-section, .patient-analysis {
     text-align: center;
     align-content: center;
     align-items: center;

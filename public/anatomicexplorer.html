@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>💊Pills</title>
+    <link rel="stylesheet" href="pills.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+</head>
+
+<body lang="en">
+
+    <div class="wrapper">
+        <header>
+
+        </header>
+
+        <main>
+            <nav
+                class="w-full fixed z-50 top-0 flex justify-start space-x-10 items-center bg-zinc-800 px-6 py-3 text-white font-sans">
+                <div id="user-info" class="font-semibold" style="display: none;">
+                    <p>👤<span id="user-email"></span></p>
+                </div>
+                <button id="signout-button" class="hover:text-red-300 font-semibold">Sign Out</button>
+                <a href="reports.html" class="hover:text-green-700 font-semibold">Reports</a>
+                <a href="anatomicexplorer.html" class="hover:text-green-700 font-semibold">Anatomic Explorer</a>
+                <a href="mailto:alexandraolariu2000@gmail.com?subject=Help%20for%20aplication&body=Hi%20Alexandra,%20I%20have%20a%20question..."
+                    class="hover:text-green-700 font-semibold">Help</a>
+            </nav>
+            <div class="container mt-[90px]">
+
+                <div class="grid grid-cols-2 gap-4 min-h-[500px]">
+
+                    <!-- Stânga -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <img src="images/human-body-frontal.jpg" class="h-full w-full" />
+                        <div class="absolute top-[20%] left-[45%] w-10 h-10 bg-blue-500/40 rounded-full cursor-pointer"
+                            onclick="selectPart('Piept (față)')"></div>
+
+                        <img src="images/human-body-back.jpg" class="h-full w-full" />
+                    </div>
+
+                    <!-- Dreapta -->
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold">Titlu</h2>
+                        <p>Conținutul din coloana dreaptă...</p>
+                    </div>
+
+                </div>
+
+
+
+
+
+            </div>
+        </main>
+
+    </div>
+    <script type="module" src="anatomicexplorer.js"></script>
+</body>
+
+</html>

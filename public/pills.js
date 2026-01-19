@@ -50,6 +50,9 @@ const bonFiscalModal = document.getElementById('bon-fiscal-modal');
 const bonFiscalContent = document.getElementById('bon-fiscal-content');
 const barcodeInput = document.getElementById('barcodeInput');
 
+// AI Analysis
+const patientAnalysisForm = document.getElementById('ai-analysis');
+
 // Edit pill form
 const editPillModal = document.getElementById('edit-pill-modal');
 const editPillForm = document.getElementById('edit-pill-form');
@@ -284,7 +287,6 @@ window.deletePill = async function (pillId) {
 };
 
 
-
 // --- Basket Functions ---
 window.addToBasket = function (pillId) {
     const pillToAdd = allPills.find(p => p.id === pillId);
@@ -411,14 +413,14 @@ function playBeep() {
 }
 
 
-window.openScannerModal = function() {
-  document.getElementById("scanner-modal").classList.remove("hidden");
-  window.addByBarcode(); // pornește scanarea
+window.openScannerModal = function () {
+    document.getElementById("scanner-modal").classList.remove("hidden");
+    window.addByBarcode(); // pornește scanarea
 }
 
 window.closeScannerModal = function () {
-  document.getElementById("scanner-modal").classList.add("hidden");
-  Quagga.stop(); // oprește camera
+    document.getElementById("scanner-modal").classList.add("hidden");
+    Quagga.stop(); // oprește camera
 }
 
 window.addByBarcode = function () {
@@ -540,6 +542,7 @@ generateBonFiscalBtn.addEventListener('click', async () => {
                         <tbody>
                 `;
         let finalTotal = 0;
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
         basket.forEach(item => {
             const itemTotal = item.quantity * item.price;
             finalTotal += itemTotal;
@@ -555,8 +558,9 @@ generateBonFiscalBtn.addEventListener('click', async () => {
         bonFiscalHtml += `
                         </tbody>
                     </table>
+                    <div class="text-base mt-2">Payment method: ${paymentMethod}</div>
                     <div class="text-right mt-4 text-lg font-bold">
-                        Total: $${finalTotal.toFixed(2)}
+                        Total: ${finalTotal.toFixed(2)}
                     </div>
                     <p class="text-center mt-6 text-gray-600">Thank you for your purchase!</p>
                 `;
@@ -566,6 +570,7 @@ generateBonFiscalBtn.addEventListener('click', async () => {
         basket = []; // Clear basket after generating receipt
         renderBasket(); // Update basket display
         showMessage("Receipt generated and stock updated!");
+
 
     } catch (error) {
         console.error("Error generating receipt or updating stock:", error);
@@ -594,7 +599,65 @@ window.printBonFiscal = function () {
 };
 
 // Initial render of basket
-renderBasket();
+// renderBasket();
+
+
+
+
+//AI Analysis Function
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const apiKey = "AIzaSyD-7upYm2OX-p2cl-t5NsaPFCgof7HLP9U"; // cheia ta de la Google AI Studio
+const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+
+patientAnalysisForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!userId) {
+        showMessage("Please wait for authentication to complete.");
+        return;
+    }
+
+    const age = document.getElementById('age').value;
+    const weight = document.getElementById('weight').value;
+    const symptoms = document.getElementById('symptoms').value;
+
+    const promptText = `Please provide a detailed medical consultation report based on the following patient data.
+Include:
+- Possible diagnoses
+- Recommended next steps
+- Risk factors
+- Warnings about allergies or medications
+- Suggested lifestyle changes
+
+Age: ${age}
+Weight: ${weight}
+Symptoms: ${symptoms}`;
+
+    try {
+        await delay(2000);
+        const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { maxOutputTokens: 1000 }
+            })
+        });
+
+        const result = await response.json();
+        const output = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
+        await delay(1000);
+        document.getElementById("analysis-result").innerText = output;
+
+    } catch (error) {
+        console.error("AI request failed:", error);
+        document.getElementById("analysis-result").innerText = "Error: Could not reach Google AI service.";
+    }
+});
 
 
 // --- Add Pills Function --- 
