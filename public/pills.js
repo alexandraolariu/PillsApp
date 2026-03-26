@@ -1,13 +1,7 @@
-// Firebase CONFIGURATION
-const firebaseConfig = {
-    apiKey: "AIzaSyAUSrhM5gWbGgUg6DCcqxqCYV_3SF4DTa0",
-    authDomain: "pillsproject.firebaseapp.com",
-    databaseURL: "https://pillsproject-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "pillsproject",
-    storageBucket: "pillsproject.firebasestorage.app",
-    messagingSenderId: "766857933896",
-    appId: "1:766857933896:web:cb783fca7ab4d43953947d"
-};
+
+
+import { firebaseConfig } from "./config.js";
+import { IMGBB_API_KEY } from "./config.js";
 
 // Necessary Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -709,7 +703,7 @@ window.printBonFiscal = function () {
 // Initial render of basket
 // renderBasket();
 
-const IMGBB_API_KEY = "4c33ada9cd0a923ee87c9698857acf1d";
+
 
 // --- Add Pills Function --- 
 addPillForm.addEventListener('submit', async (e) => {
