@@ -11,7 +11,7 @@ const firebaseConfig = {
 
 // Necessary Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 // Firebase configuration and app ID are provided globally by the Canvas environment
@@ -65,6 +65,10 @@ const editPillIndicationsInput = document.getElementById('editPillIndications');
 const editPillContraindicationsInput = document.getElementById('editPillContraindications');
 const editPillFormInput = document.getElementById('editPillForm');
 const editPillCodDeBareInput = document.getElementById('editPillCodDeBare');
+const editActiveSubstanceInput = document.getElementById('editActiveSubstance');
+const editProspectLinkInput = document.getElementById('editProspectLink');
+const editCategoryInput = document.getElementById('editCategory');
+// const editPrescriptionStatusInput = document.querySelector('input[name="editPrescriptionStatus"]:checked').value;
 
 // Modal text
 const confirmModal = document.getElementById('confirm-modal');
@@ -72,6 +76,8 @@ const confirmText = document.getElementById('confirm-text');
 const confirmYesBtn = document.getElementById('confirm-yes-btn');
 const confirmNoBtn = document.getElementById('confirm-no-btn');
 let confirmCallback = null;
+
+const detailsModal = document.getElementById('details-modal');
 
 //Pop up texts
 function showMessage(message) {
@@ -157,24 +163,35 @@ function truncateText(text, maxLength = 30) {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 }
 
+
+
 // --- Adding Pills in the Table ---
+// removed things:
+/*
+<td class="" data-label="Barcode">${pill.codDeBare || 'N/A'}</td>
+<td class="pill-indication" data-label="Indications" title="${pill.indications || 'N/A'}"> ${truncateText(pill.indications)} </td>
+<td class="pill-contraindication" data-label="Contraindications" title="${pill.contraindications || 'N/A'}">${truncateText(pill.contraindications)}</td>
+*/
+
 function renderPillRow(id, pill) {
     const tableRow = document.createElement('tr');
     tableRow.id = `pill-${id}`;
     tableRow.innerHTML = `
-                <td class="pill-name font-bold" data-label="Pill Name">${pill.name}</td>
+                <td class="pill-name font-bold cursor-pointer" onclick="showPillDetails('${id}')" data-label="Pill Name">${pill.name}</td>
                 <td class="pill-quantity" data-label="Quantity">${pill.quantity}</td>
-                <td class="expiry-date ${(new Date(pill.expiryDate) - new Date()) / (1000 * 60 * 60 * 24) <= 90 ? 'text-red' : ''}" data-label="Expiry Date">  ${pill.expiryDate}</td>
+                <td class="expiry-date ${(new Date(pill.expiryDate) - new Date()) / (1000 * 60 * 60 * 24) <= 30 ? 'text-red' : ''}" data-label="Expiry Date">  ${pill.expiryDate}</td>
                 <td class="" data-label="Price ($)">$${pill.price.toFixed(2)}</td>
-                <td class="pill-indication" data-label="Indications" title="${pill.indications || 'N/A'}"> ${truncateText(pill.indications)} </td>
-                <td class="pill-contraindication" data-label="Contraindications" title="${pill.contraindications || 'N/A'}">${truncateText(pill.contraindications)}</td>
                 <td class="" data-label="Form">${pill.form || 'N/A'}</td>
-                <td class="" data-label="Barcode">${pill.codDeBare || 'N/A'}</td>
+                <td class="" data-label="Category">${pill.pillCategory || 'N/A'}</td>
+                <td class="" data-label="Prescription Status">${pill.prescriptionStatus || 'N/A'}</td>
+                <td class="" data-label="Active Substance">${pill.pillActiveSubstance || 'N/A'}</td>
                 <td class="table-actions">
-                    <button onclick="openEditModal('${id}', '${pill.name}', ${pill.quantity}, '${pill.expiryDate}', ${pill.price}, '${pill.indications || ''}', '${pill.contraindications || ''}', '${pill.form || ''}', '${pill.codDeBare || ''}')"
+                    <button onclick="openEditModal('${id}', '${pill.name}', ${pill.quantity}, '${pill.expiryDate}', ${pill.price}, '${pill.indications || ''}', '${pill.contraindications || ''}', '${pill.form || ''}', '${pill.codDeBare || ''}', '${pill.pillCategory || ''}', '${pill.prescriptionStatus || ''}', '${pill.pillActiveSubstance || ''}', '${pill.pillProspectLink || ''}')"
                             class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Edit</button>
                     <button onclick="deletePill('${id}')"
                             class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Delete</button>
+                    <button onclick="showPillDetails('${id}')"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Details</button>
                     <button onclick="addToBasket('${id}')"
                             class="bg-green-500 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm">Add to Basket</button>
                 </td>
@@ -182,6 +199,49 @@ function renderPillRow(id, pill) {
     pillsTableBody.appendChild(tableRow);
 }
 
+
+
+// Details modal pop up
+window.showPillDetails = function (id) {
+    lucide.createIcons();
+    detailsModal.classList.remove('hidden');
+    const pill = allPills.find(p => p.id === id);
+
+    const pillImage = document.getElementById("pill-image");
+
+    if (pill.finalImageUrl) {
+        pillImage.innerHTML = `<img class="h-1000 rounded-lg" src='${pill.finalImageUrl}' alt='No Image For This Product'>`;
+    } else {
+        pillImage.innerHTML = "No image";
+    }
+
+    const detailsContent = document.getElementById("details-content");
+    const pillTitle = document.getElementById("pill-title");
+    pillTitle.innerHTML = pill.name;
+    detailsContent.innerHTML = "";
+    detailsContent.innerHTML += `<b>Barcode:</b>  ${pill.codDeBare || 'N/A'}
+        <br> <b>Prescription Status:</b> ${pill.prescriptionStatus || 'N/A'}
+        <br> <b>Category:</b> ${pill.pillCategory || 'N/A'}
+        <br> <b>Form:</b> ${pill.form || 'N/A'}
+        <br> <b>Indications:</b> ${pill.indications || 'N/A'}
+        <br> <b>Contraindications:</b> ${pill.contraindications || 'N/A'}
+        <br> <b>Active Substances:</b> ${pill.pillActiveSubstance || 'N/A'}
+        `;
+
+    if (pill.pillProspectLink) {
+        detailsContent.innerHTML += `<br><a href="${pill.pillProspectLink}" target="_blank" rel="noopener noreferrer" 
+        class="inline-flex items-center justify-center mt-2 px-4 py-2 bg-[#448132] hover:bg-[#366628] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm transition-colors">
+        Prospect</a>`
+    }
+
+
+
+
+}
+
+window.closeModal = function () {
+    detailsModal.classList.add('hidden');
+}
 
 window.searchPills = function () {
     const searchTerm = searchPillsInput.value.toLowerCase().trim();
@@ -196,7 +256,11 @@ window.searchPills = function () {
         const contraindicationsMatch = (pill.contraindications || '').toLowerCase().includes(searchTerm);
         const formMatch = (pill.form || '').toLowerCase().includes(searchTerm);
         const barcodeMatch = (pill.codDeBare || '').toLowerCase().includes(searchTerm);
-        return nameMatch || indicationsMatch || contraindicationsMatch || formMatch || barcodeMatch;
+        const activeSubstanceMatch = (pill.pillActiveSubstance || '').toLowerCase().includes(searchTerm);
+        const prescriptionStatusMatch = (pill.prescriptionStatus || '').toLowerCase().includes(searchTerm);
+        const categoryMatch = (pill.pillCategory || '').toLowerCase().includes(searchTerm);
+
+        return nameMatch || indicationsMatch || contraindicationsMatch || formMatch || barcodeMatch || activeSubstanceMatch || prescriptionStatusMatch || categoryMatch;
     });
     renderPillsTable(filteredPills);
 };
@@ -207,7 +271,7 @@ window.closeEditModal = function () {
     editPillModal.style.display = 'none';
 }
 
-window.openEditModal = function (pillId, name, quantity, expiryDate, price, indications, contraindications, form, codDeBare) {
+window.openEditModal = function (pillId, name, quantity, expiryDate, price, indications, contraindications, form, codDeBare, category, prescriptionStatus, activeSubstance, prospectLink) {
     editPillIdInput.value = pillId;
     editPillNameInput.value = name;
     editPillQuantityInput.value = quantity;
@@ -217,7 +281,20 @@ window.openEditModal = function (pillId, name, quantity, expiryDate, price, indi
     editPillContraindicationsInput.value = contraindications || '';
     editPillFormInput.value = form || '';
     editPillCodDeBareInput.value = codDeBare || '';
+    editCategoryInput.value = category || '';
+    editActiveSubstanceInput.value = activeSubstance || '';
+    editProspectLinkInput.value = prospectLink || '';
+    if (prescriptionStatus) {
+        const radioToSelect = document.querySelector(`input[name="editPrescriptionStatus"][value="${prescriptionStatus}"]`);
+        if (radioToSelect) {
+            radioToSelect.checked = true; 
+        }
+    }
+
     editPillModal.style.display = 'flex';
+
+    
+
 }
 
 editPillForm.addEventListener('submit', async (e) => {
@@ -236,6 +313,10 @@ editPillForm.addEventListener('submit', async (e) => {
     const contraindications = editPillContraindicationsInput.value;
     const form = editPillFormInput.value;
     const codDeBare = editPillCodDeBareInput.value;
+    const pillActiveSubstance = editActiveSubstanceInput.value;
+    const pillProspectLink = editProspectLinkInput.value;
+    const pillCategory = editCategoryInput.value;
+    const prescriptionStatus = document.querySelector('input[name="editPrescriptionStatus"]:checked').value;
 
     if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
         showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
@@ -252,7 +333,11 @@ editPillForm.addEventListener('submit', async (e) => {
             indications,
             contraindications,
             form,
-            codDeBare
+            codDeBare,
+            pillActiveSubstance,
+            pillProspectLink,
+            pillCategory,
+            prescriptionStatus
         });
         showMessage("Pill updated successfully!");
         closeEditModal();
@@ -486,6 +571,27 @@ window.addByBarcode = function () {
 
 
 
+// Save receipt in database
+async function saveReceipt(cartItems, total, paymentMethod) {
+    const salesRef = collection(db, `artifacts/${appId}/users/${userId}/sales`);
+    try {
+        await addDoc(salesRef, {
+            date: serverTimestamp(),
+            items: cartItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            totalAmount: total,
+            paymentMethod: paymentMethod
+        });
+        console.log("Receipt saved!");
+    } catch (e) {
+        console.error("Error at receipt saving:", e);
+    }
+}
+
 // --- Bon Fiscal Generation and Print ---
 generateBonFiscalBtn.addEventListener('click', async () => {
     if (basket.length === 0) {
@@ -565,6 +671,8 @@ generateBonFiscalBtn.addEventListener('click', async () => {
                     <p class="text-center mt-6 text-gray-600">Thank you for your purchase!</p>
                 `;
 
+        await saveReceipt(basket, finalTotal, paymentMethod);
+
         bonFiscalContent.innerHTML = bonFiscalHtml;
         bonFiscalModal.style.display = 'flex';
         basket = []; // Clear basket after generating receipt
@@ -601,64 +709,7 @@ window.printBonFiscal = function () {
 // Initial render of basket
 // renderBasket();
 
-
-
-
-//AI Analysis Function
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const apiKey = "AIzaSyD-7upYm2OX-p2cl-t5NsaPFCgof7HLP9U"; // cheia ta de la Google AI Studio
-const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-
-
-patientAnalysisForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!userId) {
-        showMessage("Please wait for authentication to complete.");
-        return;
-    }
-
-    const age = document.getElementById('age').value;
-    const weight = document.getElementById('weight').value;
-    const symptoms = document.getElementById('symptoms').value;
-
-    const promptText = `Please provide a detailed medical consultation report based on the following patient data.
-Include:
-- Possible diagnoses
-- Recommended next steps
-- Risk factors
-- Warnings about allergies or medications
-- Suggested lifestyle changes
-
-Age: ${age}
-Weight: ${weight}
-Symptoms: ${symptoms}`;
-
-    try {
-        await delay(2000);
-        const response = await fetch(`${apiUrl}?key=${apiKey}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: { maxOutputTokens: 1000 }
-            })
-        });
-
-        const result = await response.json();
-        const output = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
-        await delay(1000);
-        document.getElementById("analysis-result").innerText = output;
-
-    } catch (error) {
-        console.error("AI request failed:", error);
-        document.getElementById("analysis-result").innerText = "Error: Could not reach Google AI service.";
-    }
-});
-
+const IMGBB_API_KEY = "4c33ada9cd0a923ee87c9698857acf1d";
 
 // --- Add Pills Function --- 
 addPillForm.addEventListener('submit', async (e) => {
@@ -676,6 +727,39 @@ addPillForm.addEventListener('submit', async (e) => {
     const contraindications = document.getElementById('pillContraindications').value;
     const form = document.getElementById('pillForm').value;
     const codDeBare = document.getElementById('pillCodDeBare').value;
+    const pillActiveSubstance = document.getElementById('pillActiveSubstance').value;
+    const pillProspectLink = document.getElementById('pillProspectLink').value;
+    const pillCategory = document.getElementById('pillCategory').value;
+    const prescriptionStatus = document.querySelector('input[name="prescriptionStatus"]:checked').value;
+
+
+    //image uploading to https://alexandra-olariu.imgbb.com/
+    const file = document.getElementById('pillImage').files[0];
+    let finalImageUrl = "";
+
+    try {
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+
+        const imgbbData = await imgbbResponse.json();
+
+        if (imgbbData.success) {
+            finalImageUrl = imgbbData.data.url;
+            console.log("Image uploaded.");
+        } else {
+            throw new Error("Error at ImgBB: " + imgbbData.error.message);
+        }
+
+    } catch (error) {
+        console.error("Full error:", error);
+        alert("Error saving the image: " + error.message);
+    }
 
     if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
         showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
@@ -692,10 +776,18 @@ addPillForm.addEventListener('submit', async (e) => {
             indications,
             contraindications,
             form,
-            codDeBare
+            codDeBare,
+            pillActiveSubstance,
+            pillProspectLink,
+            pillCategory,
+            prescriptionStatus,
+            finalImageUrl,
+            createdAt: new Date()
         });
+
         showMessage("Pill added successfully!");
         addPillForm.reset();
+
     } catch (error) {
         console.error("Error adding pill:", error);
         showMessage(`Error adding pill: ${error.message}`);

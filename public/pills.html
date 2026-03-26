@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="pills.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body lang="en" onclick="initAudio()">
@@ -52,10 +53,10 @@
                                 <th class=" ">Quantity</th>
                                 <th class=" ">Expiry Date</th>
                                 <th class=" ">Price</th>
-                                <th class=" ">Indications</th>
-                                <th class=" ">Contraindications</th>
                                 <th class=" ">Form</th>
-                                <th class=" ">Barcode</th>
+                                <th class=" ">Category</th>
+                                <th class=" ">Prescription Status</th>
+                                <th class=" ">Active Substance</th>
                                 <th class=" ">Actions</th>
                             </tr>
                         </thead>
@@ -165,34 +166,7 @@
                     </div>
                 </div>
 
-                <!-- AI Patient Analysis  -->
-                <div class="patient-analysis">
-                    <h2 class="text-2xl font-semibold text-green-700 mb-4">AI Patient Consultation Analysis</h2>
-                    <div class="grid grid-cols-2 gap-10 mt-6">
-                        <form id="ai-analysis" class="flex flex-col space-y-2">
-                            <input type="number" id="age" placeholder="Age(years)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <input type="number" id="weight" placeholder="Weight(kg)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            <textarea name="" id="symptoms"  placeholder="Symptoms(e.g. high fever, muscle pain, cough)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                            <textarea name="" id="allergies"  placeholder="Known Allergies(e.g. Penicilin, Lactose)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                            <textarea name="" id="chronic-conditions"  placeholder="Chronic Conditions(e.g Diabetes, HTN, Renal Diseases)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                            <textarea name="" id="current-medication"  placeholder="Current Medication(for interactions)" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
 
-                            <select class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                <option>Pregnancy Select</option>
-                                <option value="">Not applicable</option>
-                                <option value="">Pregnant</option>
-                                <option value="">Lactating</option>
-                            </select>
-                            <button type="submit" class="mt-6 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                            AI Patient Analysis
-                    </button>
-                        </form>
-
-                        <div id="analysis-result" class="shadow border border-indigo-500 rounded-lg px-3 py-3 bg-indigo-50 "><h3 class="text-indigo-900 text-xl">Patient Analysis Result</h3></div>
-                    </div>
-
-                    
-                </div>
 
                 <!-- Add New Pill Form -->
                 <div class="addPills-section">
@@ -251,15 +225,107 @@
                             <input type="text" id="pillCodDeBare"
                                 class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
+
+                        <div>
+                            <label for="pillActiveSubstance" class="block text-gray-700 text-sm font-bold mb-2">Active
+                                Substance:</label>
+                            <input type="text" id="pillActiveSubstance"
+                                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+
+                        <div>
+                            <label for="pillProspectLink" class="block text-gray-700 text-sm font-bold mb-2">Prospect
+                                Link:</label>
+                            <input type="text" id="pillProspectLink"
+                                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+
+                        <div>
+                            <label for="pillCategory" class="block text-gray-700 text-sm font-bold mb-2">Category
+                                (Type):</label>
+                            <select id="pillCategory"
+                                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+                                <option value="">Select Category</option>
+                                <option value="Antibiotic">Antibiotic</option>
+                                <option value="Analgesic (Pain)">Analgesic (Pain)</option>
+                                <option value="Anti-inflammatory">Anti-inflammatory</option>
+                                <option value="Vitamin / Supplement">Vitamin / Supplement</option>
+                                <option value="OTC (General)">OTC (General)</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Prescription Status:</label>
+                            <div class="flex items-center space-x-6 py-2">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="prescriptionStatus" value="OTC" checked
+                                        class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                    <span class="ml-2 text-gray-700 text-sm">OTC (No prescription)</span>
+                                </label>
+
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="prescriptionStatus" value="Rx"
+                                        class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                    <span class="ml-2 text-gray-700 text-sm">Needs Prescription (Rx)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="pillImage" class="block text-gray-700 text-sm font-bold mb-2">Product
+                                Image:</label>
+                            <input type="file" id="pillImage" accept="image/*"
+                                class="shadow appearance-none border rounded-lg w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+                        </div>
+
                         <div class="md:col-span-2 text-right">
                             <button type="submit" id="submit"
                                 class=" bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md">Add
                                 Pill</button>
                         </div>
+
+
+
                     </form>
 
                 </div>
 
+                <div id="details-modal"
+                    class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 hidden p-4 md:p-6">
+
+                    <div
+                        class="bg-white shadow-2xl rounded-2xl border border-gray-200 text-slate-500 font-semibold text-sm w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                        <div class="flex justify-end p-4 border-b border-gray-50 bg-white">
+                            <button onclick="closeModal()" class="hover:bg-gray-100 p-2 rounded-full transition-colors">
+                                <i data-lucide="x" class="w-6 h-6 stroke-[2px]"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-8 pt-4 overflow-y-auto custom-scrollbar">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                                <div id="pill-image"
+                                    class="bg-slate-50 p-6 rounded-xl border border-slate-100 min-h-[300px] lg:min-h-[450px] flex items-center justify-center overflow-hidden">
+                                    <span class="text-slate-400 font-normal">Image</span>
+                                </div>
+
+                                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col h-full">
+                                    <h3 id="pill-title"
+                                        class="text-2xl font-bold text-slate-800 mb-4 tracking-tight uppercase border-b pb-2">
+                                        Title</h3>
+
+                                    <div id="details-content"
+                                        class="text-left font-normal text-slate-600 leading-relaxed space-y-4">
+                                        Details
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Edit Pill Modal -->
                 <div id="edit-pill-modal" class="modal">
@@ -320,6 +386,57 @@
                                 <input type="text" id="editPillCodDeBare"
                                     class="shadow appearance-none border rounded-lg w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
                             </div>
+
+
+
+                            <div>
+                                <label for="editCategory" class="block text-gray-700 text-sm font-bold mb-2">Category
+                                    (Type):</label>
+                                <select id="editCategory"
+                                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+                                    <option value="">Select Category</option>
+                                    <option value="Antibiotic">Antibiotic</option>
+                                    <option value="Analgesic (Pain)">Analgesic (Pain)</option>
+                                    <option value="Anti-inflammatory">Anti-inflammatory</option>
+                                    <option value="Vitamin / Supplement">Vitamin / Supplement</option>
+                                    <option value="OTC (General)">OTC (General)</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2">Prescription Status:</label>
+                                <div class="flex items-center space-x-6 py-2">
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="editPrescriptionStatus" value="OTC"
+                                            class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700 text-sm">OTC (No prescription)</span>
+                                    </label>
+
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="radio" name="editPrescriptionStatus" value="Rx"
+                                            class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700 text-sm">Needs Prescription (Rx)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="editActiveSubstance"
+                                    class="block text-gray-700 text-sm font-bold mb-2">Active Substance:</label>
+                                <input type="text" id="editActiveSubstance"
+                                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+
+                            <div>
+                                <label for="editProspectLink"
+                                    class="block text-gray-700 text-sm font-bold mb-2">Prospect Link:</label>
+                                <input type="text" id="editProspectLink"
+                                    class="shadow appearance-none border rounded-lg w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+
+
                             <div class="md:col-span-2 text-right">
                                 <button type="submit"
                                     class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out shadow-md">Update

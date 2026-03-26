@@ -6,6 +6,8 @@
     <title>💊Reports</title>
     <link rel="stylesheet" href="pills.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body lang="en">
@@ -23,13 +25,68 @@
         </nav>
         <div class="container mt-[90px]"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-            <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-                Expired Loss
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10 text-left w-2/3">
+
+            <div class="lg:col-span-1">
+                <div
+                    class="bg-white p-5 rounded-xl shadow-lg border border-gray-200 text-slate-500 font-semibold text-sm font-bold">
+                    <p class="flex items-center gap-2 text-slate-500 font-bold text-sm pb-5">
+                        <i data-lucide="package" style="color: #10b981; width: 25px; height: 25px;"></i>
+                        STOCK VALUE
+                    </p>
+                    <div id="stock-value" class="text-green-600 text-2xl font-bold"></div>
+                    <div class="flex items-center gap-2 mt-3 text-xs">Items in inventory: <div id="inventory-items"
+                            class="text-green-500"> </div>
+                    </div>
+                </div>
+
+
+                <div
+                    class="mt-4 bg-white p-5 rounded-xl shadow-lg border border-gray-200 text-slate-500 font-semibold text-sm font-bold">
+                    <p class="flex items-center gap-2 text-slate-500 font-bold text-sm pb-5"><i
+                            data-lucide="alert-circle" style="color: #ef4444; width: 25px; height: 25px;"></i>
+                        EXPIRED LOSS
+                    </p>
+                    <div id="expiry-loss" class="text-red-500 text-2xl font-bold"></div>
+                    <div class="flex items-center gap-2 mt-2 text-xs">Loss rate: <div id="percent-loss-rate"
+                            class="text-red-500"> </div>
+                    </div>
+                    <div class="bg-gray-200 h-2 rounded-full w-full mt-2">
+                        <div id="expiry-loss-bar" class="bg-red-500 w-0 h-full rounded-full"></div>
+                    </div>
+                </div>
+
+                <div
+                    class="mt-4 bg-white p-5 rounded-xl shadow-lg border border-gray-200 text-slate-500 font-semibold text-sm font-bold">
+                    <p class="flex items-center gap-2 text-slate-500 font-bold text-sm pb-5"><i
+                            data-lucide="shopping-bag" style="color: #458cf7; width: 25px; height: 25px;"></i>
+                        TODAY SALES
+                    </p>
+                    <div id="today-sales-rate" class="text-blue-500 text-2xl font-bold"></div>
+                    <button class="bg-blue-500 text-white rounded-lg px-3 py-1 mt-3" onclick="openModalReceipts()">Today
+                        receipts</button>
+
+                </div>
+
+
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-                Stock Value
+
+            <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-lg border border-gray-200 text-slate-500">
+                <h3 class="font-bold mb-4">STOCK OVERVIEW</h3>
+                <div style="max-width: 250px; margin: 0 auto;">
+                    <canvas id="myDonutChart"></canvas>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg mt-6">
+                    <h3 class="font-bold mb-4">WEEKLY SALES</h3>
+                    <div style="height: 300px; width: 100%; position: relative;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
             </div>
+
+
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
@@ -73,7 +130,8 @@
                                     <th class="px-4 py-2 text-left">Name</th>
                                     <th class="px-4 py-2 text-left">Barcode</th>
                                     <th class="px-4 py-2 text-center">Quantity</th>
-                                    <th class="px-4 py-2 text-left cursor-pointer whitespace-nowrap" onclick="filterPillsExpiryDate()">Expiry Date↑↓</th>
+                                    <th class="px-4 py-2 text-left cursor-pointer whitespace-nowrap"
+                                        onclick="filterPillsExpiryDate()">Expiry Date↑↓</th>
                                     <th class="px-4 py-2 text-right">Price</th>
                                 </tr>
                             </thead>
@@ -90,12 +148,46 @@
             </div>
         </div>
 
+
+        <div id="receipts-modal" class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 hidden">
+            <div
+                class="bg-white shadow p-5 rounded-xl shadow-lg border border-gray-200 text-slate-500 font-semibold text-sm font-bold">
+                <div class="flex justify-end w-full p-2"><button onclick="closeModal()"
+                        class="hover:shadow-lg bg-white"><i data-lucide="x" class="w-5 h-5 stroke-[3px]"></i></button>
+                </div>
+                <div id="receipt-print">
+                    <h3 class="font-bold text-xl">TODAY SALES</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Receipt ID</th>
+                                <th>Time</th>
+                                <th>Payment Method</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receipts-modal-content">
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-gray-500">0 sales today</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="p-3 text-left font-bold">TOTAL: <span id="total">0 $</span></div>
+                </div>
+                <button class="bg-blue-500 text-white rounded-lg px-3 py-1 mt-3" onclick="printReceipts()">Print</button>
+            </div>
+        </div>
+
     </main>
 
 
 
 
     <script type="module" src="reports.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 
 

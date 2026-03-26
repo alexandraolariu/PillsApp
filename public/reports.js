@@ -32,6 +32,16 @@ const signoutButton = document.getElementById('signout-button');
 const userInfoDiv = document.getElementById('user-info');
 const lowStockBody = document.getElementById('low-stock-body');
 const expiringBody = document.getElementById('expiring-body');
+const expiryLoss = document.getElementById("expiry-loss");
+const stockValue = document.getElementById("stock-value");
+const expiryLossBar = document.getElementById("expiry-loss-bar");
+const percentLossRate = document.getElementById("percent-loss-rate");
+const inventoryItems = document.getElementById("inventory-items");
+const todaySalesRate = document.getElementById("today-sales-rate");
+const receiptsModal = document.getElementById("receipts-modal");
+const receiptsModalContent = document.getElementById("receipts-modal-content");
+const total = document.getElementById("total");
+
 
 // Function for getting user id
 onAuthStateChanged(auth, async (user) => {
@@ -93,11 +103,11 @@ function redirectToSignInPage() {
     window.location.href = 'index.html';
 }
 
+
 window.filterPillsLowQuantity = filterPillsLowQuantity;
 let sortAscending = true;
 function filterPillsLowQuantity() {
     lowStockBody.innerHTML = '';
-
     const filteredPillsLowStock = allPills
         .filter(pill => pill.quantity <= LOW_STOCK_THRESHOLD)
         .sort((a, b) => {
@@ -118,7 +128,8 @@ function filterPillsLowQuantity() {
 window.filterPillsExpiryDate = filterPillsExpiryDate;
 function filterPillsExpiryDate() {
     expiringBody.innerHTML = '';
-
+    expiryLoss.innerHTML = '';
+    let expirypillstotal = 0;
     const filteredPillsExpiry = allPills
         .filter(pill => {
             const daysLeft = Math.round((new Date(pill.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
@@ -134,35 +145,46 @@ function filterPillsExpiryDate() {
         expiringBody.innerHTML = '<td colspan="5" class="text-center py-4 text-gray-500">No products that will expire</td>';
     } else {
         filteredPillsExpiry.forEach(pill => {
+            const daysLeft = Math.round((new Date(pill.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
             addPillsInTable(pill.id, pill, expiringBody);
+
+            if (daysLeft <= 30) {
+                expirypillstotal = expirypillstotal + pill.quantity * pill.price;
+            }
         });
     }
 
+    expiryLoss.innerHTML = expirypillstotal + " $";
+    console.log(expirypillstotal);
+
     sortAscending = !sortAscending;
+
+    return expirypillstotal;
 }
 
 
-function addPillsInTable(id,filteredPills,targetBody){
+
+function addPillsInTable(id, filteredPills, targetBody) {
     let classToAddQuantity = '';
     let classToAddExpiry = '';
     const daysLeft = Math.round((new Date(filteredPills.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
     let daysLeftShow = "<p class='font-bold'>" + daysLeft + " day(s)</p>";
 
-    if (daysLeft <= 30){
+    if (daysLeft <= 30) {
         classToAddExpiry = "text-red";
-    } else if(daysLeft <= 60){
+    } else if (daysLeft <= 60) {
         classToAddExpiry = "text-orange-400";
-    } else if(daysLeft <= 90){
+    } else if (daysLeft <= 90) {
         classToAddExpiry = "text-yellow-500";
-    } else{
+    } else {
         classToAddExpiry = "text-gray-400";
     }
 
-    if (filteredPills.quantity<= 5){
+    if (filteredPills.quantity <= 5) {
         classToAddQuantity = "text-red";
-    } else if(filteredPills.quantity<= 10){
+    } else if (filteredPills.quantity <= 10) {
         classToAddQuantity = "text-orange-400";
-    }else if(filteredPills.quantity<= 20){
+    } else if (filteredPills.quantity <= 20) {
         classToAddQuantity = "text-yellow-500";
     }
 
@@ -208,6 +230,113 @@ function exportToExcel2() {
     link.click();
 }
 
+
+//Chart for Stock Overview
+let myChart;
+function renderDonutChart(totalValue, expiredLoss) {
+    const ctx = document.getElementById('myDonutChart').getContext('2d');
+
+    if (myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Stock Valid', 'Expired/Expiring'],
+            datasets: [{
+                data: [totalValue - expiredLoss, expiredLoss],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 0,
+                cutout: '60%'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+
+let salesChartInstance = null; // Trebuie să fie în afara funcției!
+
+function renderSalesChart(weeklySales) {
+    const canvas = document.getElementById('salesChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    // Dacă graficul există deja, doar îi dăm datele noi și îi facem update
+    if (salesChartInstance) {
+        salesChartInstance.data.datasets[0].data = weeklySales;
+        salesChartInstance.update(); // Această metodă e mult mai "blândă" decât destroy/create
+        return;
+    }
+
+    // Dacă nu există, îl creăm prima dată
+    salesChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [{
+                label: 'Sales ($)',
+                data: weeklySales,
+                borderColor: '#3b82f6',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(59, 130, 246, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Forțează-l să stea în div-ul tău
+            animation: {
+                duration: 1000 // Face tranziția lină când se schimbă datele
+            }
+        }
+    });
+}
+
+
+
+
+
+
+window.openModalReceipts = openModalReceipts;
+window.closeModal = closeModal;
+function openModalReceipts(){
+    receiptsModal.classList.remove('hidden');
+
+}
+
+function closeModal(){
+    receiptsModal.classList.add('hidden');
+}
+
+
+window.printReceipts = function () {
+    const printContent = document.getElementById('receipt-print').innerHTML;
+    const originalBody = document.body.innerHTML;
+
+    // Create a temporary iframe or new window for printing to isolate content
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title>Receipt</title>');
+    // Copy relevant styles for printing
+    printWindow.document.write('<link href="https://cdn.tailwindcss.com" rel="stylesheet">');
+    printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">');
+    printWindow.document.write('<style>body { font-family: \'Inter\', sans-serif; } table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; } th, td { border-bottom: 1px dashed #ccc; padding: 5px 0; } th:nth-child(1), td:nth-child(1) { width: 50%; text-align: left; } th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; } th:nth-child(3), td:nth-child(3) { width: 15%; text-align: right; } th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; } h2, h3 { text-align: center; margin-bottom: 10px; } .text-right { text-align: right; } .text-center { text-align: center; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(printContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close(); // Close the print window after printing
+};
+
+
+
+
 function setupFirestoreListener(currentUserId) {
     if (!currentUserId) {
         console.error("User ID is not available for Firestore listener.");
@@ -218,6 +347,7 @@ function setupFirestoreListener(currentUserId) {
     }
 
     const pillsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/pills_stock`);
+    const salesCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/sales`);
     const q = query(pillsCollectionRef);
 
     onSnapshot(q, (snapshot) => {
@@ -226,12 +356,75 @@ function setupFirestoreListener(currentUserId) {
         snapshot.forEach(doc => {
             allPills.push({ id: doc.id, ...doc.data() });
         });
+
+        const totalStockValue = allPills.reduce((sum, pill) => {
+            const price = Number(pill.price) || 0;
+            const qty = Number(pill.quantity) || 0;
+            return sum + (price * qty);
+        }, 0);
+
+        const totalStockUnits = allPills.reduce((sum, pill) => {
+            const qty = Number(pill.quantity) || 0;
+            return sum + qty;
+        }, 0)
+
+
+        stockValue.innerHTML = totalStockValue + " $";
+        inventoryItems.innerHTML = totalStockUnits;
+
+        const lostValue = filterPillsExpiryDate();
+        let lostPercent = (lostValue / totalStockValue * 100).toFixed(2);
+
+        expiryLossBar.style.width = lostPercent + "%";
+        percentLossRate.innerHTML = lostPercent + "%";
+
+        renderDonutChart(totalStockValue, lostValue);
         filterPillsLowQuantity(allPills);
         filterPillsExpiryDate(allPills);
+
     }, (error) => {
         console.error("Error fetching pills:", error);
         errorMessageDisplay.textContent = `Failed to load pills: ${error.message}`;
         errorMessageDisplay.classList.remove('hidden');
         loadingIndicator.classList.add('hidden');
+    });
+
+
+
+    onSnapshot(salesCollectionRef, (salesSnapshot) => {
+        receiptsModalContent.innerHTML = "";
+        const weeklySales = [0, 0, 0, 0, 0, 0, 0];
+        let todaySales = 0;
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        salesSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date && data.totalAmount) {
+                const saleDate = data.date.toDate();
+
+                const tempSaleDate = saleDate;
+                tempSaleDate.setHours(0, 0, 0, 0);
+
+                if (today.getTime() == tempSaleDate.getTime()) {
+                    todaySales = todaySales + Number(data.totalAmount);
+                    const formattedHour = data.date.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    receiptsModalContent.innerHTML += `<tr><td>${doc.id}</td><td>${formattedHour}</td><td>${data.paymentMethod}</td><td>${data.totalAmount} $</td></tr>`;
+
+                }
+                todaySalesRate.innerHTML = todaySales + " $";
+                total.innerHTML = todaySales + " $";
+                if (saleDate >= sevenDaysAgo) {
+                    let dayIndex = saleDate.getDay() - 1;
+                    if (dayIndex === -1) dayIndex = 6;
+                    weeklySales[dayIndex] += Number(data.totalAmount) || 0;
+                }
+            }
+        });
+
+        renderSalesChart(weeklySales);
     });
 }
