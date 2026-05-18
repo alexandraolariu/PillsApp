@@ -25,6 +25,7 @@
                 </div>
                 <button id="signout-button" class="hover:text-red-300 font-semibold">Sign Out</button>
                 <a href="reports.html" class="hover:text-green-700 font-semibold">Reports</a>
+                <a href="adminonlineshop.html" class="hover:text-green-700 font-semibold">Online Shop</a>
                 <a href="anatomicexplorer.html" class="hover:text-green-700 font-semibold">Anatomic Explorer</a>
                 <a href="mailto:alexandraolariu2000@gmail.com?subject=Help%20for%20aplication&body=Hi%20Alexandra,%20I%20have%20a%20question..."
                     class="hover:text-green-700 font-semibold">Help</a>
@@ -108,10 +109,6 @@
                         </div>
 
                         <div class="lg:w-1/3 p-6  rounded-lg shadow-inner">
-
-
-
-
                             <div
                                 class="w-full flex flex-col items-center p-6 border-b lg:border-b-0 lg:border-r border-gray-200 lg:pr-6 bg-gray-50 rounded-lg shadow-inner">
 
@@ -144,9 +141,6 @@
                                     Generate Receipt
                                 </button>
                             </div>
-
-
-
                         </div>
                     </div>
                 </div>
@@ -255,29 +249,53 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Prescription Status:</label>
-                            <div class="flex items-center space-x-6 py-2">
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="prescriptionStatus" value="OTC" checked
-                                        class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
-                                    <span class="ml-2 text-gray-700 text-sm">OTC (No prescription)</span>
+
+
+
+
+
+
+                        <div class="flex flex-col items-center w-full">
+                            <label class="block text-gray-700 text-sm font-bold mb-2 text-center w-full">
+                                Prescription Status:
+                            </label>
+
+                            <div class="flex bg-gray-100 p-1 rounded-xl w-full border border-gray-200 h-[42px]">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="prescriptionStatus" value="OTC" class="peer hidden"
+                                        checked>
+                                    <div class="flex items-center justify-center h-full rounded-lg transition-all duration-200 
+                        peer-checked:bg-white peer-checked:text-green-600 peer-checked:shadow-sm
+                        text-gray-500 font-bold text-xs uppercase tracking-wider">
+                                        OTC (FREE)
+                                    </div>
                                 </label>
 
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="prescriptionStatus" value="Rx"
-                                        class="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
-                                    <span class="ml-2 text-gray-700 text-sm">Needs Prescription (Rx)</span>
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="prescriptionStatus" value="Rx" class="peer hidden">
+                                    <div class="flex items-center justify-center h-full rounded-lg transition-all duration-200 
+                        peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm
+                        text-gray-500 font-bold text-xs uppercase tracking-wider">
+                                        RX ONLY
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
-                        <div>
-                            <label for="pillImage" class="block text-gray-700 text-sm font-bold mb-2">Product
-                                Image:</label>
-                            <input type="file" id="pillImage" accept="image/*"
-                                class="shadow appearance-none border rounded-lg w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-white">
+                        <div class="w-full">
+                            <label for="pillImage" class="block text-gray-700 text-sm font-bold mb-2">
+                                Product Image:
+                            </label>
+                            <input type="file" id="pillImage" accept="image/*" class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-lg file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-green-50 file:text-green-700
+                            hover:file:bg-green-100
+                            border border-gray-300 rounded-lg shadow-sm
+                            cursor-pointer focus:outline-none bg-white">
                         </div>
+
 
                         <div class="md:col-span-2 text-right">
                             <button type="submit" id="submit"

@@ -1,5 +1,5 @@
 import { firebaseConfig } from "./config.js";
-import { IMGBB_API_KEY } from "./config.js";
+
 
 // Necessary Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";

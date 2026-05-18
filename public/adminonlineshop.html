@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>💊Online Shop Admin</title>
+    <link rel="stylesheet" href="pills.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body lang="en">
+
+    <main>
+        <nav
+            class="w-full fixed z-50 top-0 flex justify-start space-x-10 items-center bg-zinc-800 px-6 py-3 text-white font-sans">
+            <div id="user-info" class="font-semibold" style="display: none;">
+                <p>👤<span id="user-email"></span></p>
+            </div>
+            <button id="signout-button" class="hover:text-red-300 font-semibold">Sign Out</button>
+            <a href="pills.html" class="hover:text-green-700 font-semibold">Pills Stock</a>
+            <a href="mailto:alexandraolariu2000@gmail.com?subject=Help%20for%20aplication&body=Hi%20Alexandra,%20I%20have%20a%20question..."
+                class="hover:text-green-700 font-semibold">Help</a>
+        </nav>
+        <div class="max-w-none w-[90%] px-10 mt-[90px]">
+
+            <!-- Message Box Modal -->
+            <div id="message-modal" class="modal">
+                <div class="modal-content text-center">
+                    <span class="close-button" onclick="closeMessageModal()">&times;</span>
+                    <p id="message-text" class="text-lg font-medium mb-4"></p>
+                    <button onclick="closeMessageModal()"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">OK</button>
+                </div>
+            </div>
+
+
+            <div id="loading-indicator" class="hidden">Loading stock data...</div>
+            <div id="error-message" class="hidden"></div>
+
+            <div class="w-full text-left py-4 mb-4 flex gap-4">
+                <a id="online-shop-button" href="#"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
+                    target="_blank"> <i data-lucide="shopping-cart" class="w-5 h-5"></i> OPEN Online Shop</a>
+
+                <button onclick="document.getElementById('settings-modal').classList.remove('hidden')"
+                    id="online-shop-setting"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Shop Settings
+                </button>
+
+            </div>
+
+            <div id="settings-modal"
+                class="fixed inset-0 flex items-center justify-center z-50 bg-black/50 hidden p-4 md:p-6">
+
+                <div
+                    class="bg-white shadow-2xl rounded-2xl border border-gray-200 text-slate-500 font-semibold text-sm w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+
+                    <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-slate-50">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i>
+                            Online Shop Settings
+                        </h2>
+                        <button onclick="document.getElementById('settings-modal').classList.add('hidden')"
+                            class="hover:bg-gray-200 p-1.5 rounded-full transition-colors">
+                            <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+                        <div class="flex items-center gap-4">
+                            <label
+                                class="text-xs font-bold text-slate-500 uppercase tracking-wider text-left min-w-[140px]">Pharmacy
+                                name</label>
+                            <input type="text" id="shop-name-input" placeholder="Ex: Pharma"
+                                class="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700">
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <label
+                                class="text-xs font-bold text-slate-500 uppercase tracking-wider text-left min-w-[140px]">Phone</label>
+                            <input type="text" id="shop-phone-input" placeholder="07xx xxx xxx"
+                                class="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700">
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <label
+                                class="text-xs font-bold text-slate-500 uppercase tracking-wider text-left min-w-[140px]">Address</label>
+                            <input type="text" id="shop-address-input" placeholder="Streetn Number, City"
+                                class="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700">
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <label
+                                class="text-xs font-bold text-slate-500 uppercase tracking-wider text-left min-w-[140px] mt-3">Banner
+                                text</label>
+                            <textarea id="shop-announcement-input"
+                                placeholder="Ex: Where you find all you need." rows="2"
+                                class="flex-1 bg-slate-50 border border-slate-200 p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 bg-slate-50 flex justify-end gap-3">
+                        <button onclick="saveSettings()"
+                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            Save Changes
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-left font-bold text-slate-600 text-2xl uppercase">
+                <i data-lucide="clipboard-list" class="w-8 h-8 text-indigo-600"></i>
+                <span>Order Status Monitor</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 p-8">
+
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-blue-500 p-3 flex flex-col h-[500px]">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-blue-700 uppercase text-xs tracking-wider">New Orders</h2>
+                        <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold">3</span>
+                    </div>
+
+                    <div id="container-new" class="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+
+                    </div>
+                </div>
+
+
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-yellow-500 p-3 flex flex-col h-[500px]">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-yellow-700 uppercase text-xs tracking-wider">Processing</h2>
+                        <span
+                            class="bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full text-[10px] font-bold">1</span>
+                    </div>
+                    <div id="container-processing" class="space-y-3 overflow-y-auto flex-1 pr-1">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-green-500 p-3 flex flex-col h-[500px]">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-green-700 uppercase text-xs tracking-wider">Delivered</h2>
+                        <span
+                            class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold">12</span>
+                    </div>
+                    <div id="container-delivered" class="space-y-3 overflow-y-auto flex-1 pr-1">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bg-white p-8 m-6 rounded-xl shadow-sm border-t-4">
+
+                <!-- Search Bar -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-3">
+
+                    <div
+                        class="flex items-center gap-3 text-left font-bold text-slate-600 text-2xl uppercase tracking-tighter">
+                        <i data-lucide="package" class="w-8 h-8 text-indigo-600"></i>
+                        <span>Online Product Catalog Management</span>
+                    </div>
+
+                    <div class="relative flex items-center w-full md:w-96">
+                        <input type="text" id="searchPills"
+                            class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                            placeholder="Search by name, indications..." onkeyup="searchPills()">
+                    </div>
+                </div>
+
+                <!-- Pills Display Area -->
+                <div class="pillsDisplayArea m-0 bg-white">
+                    <table id="pills-list-table">
+                        <thead>
+                            <tr>
+                                <th class=" ">Pill Name</th>
+                                <th class=" ">Quantity</th>
+                                <th class=" ">Expiry Date</th>
+                                <th class=" ">Price</th>
+                                <th class=" ">Category</th>
+                                <th class=" ">Prescription Status</th>
+                                <th class=" ">Online Shop</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pills-table-body" class="">
+                            <!-- Pills will be dynamically loaded here -->
+                        </tbody>
+                    </table>
+                    <p id="no-pills-message" class="text-center text-gray-500 py-4">No pills in stock yet.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+
+
+    <script type="module" src="adminonlineshop.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+
+</html>

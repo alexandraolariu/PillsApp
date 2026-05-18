@@ -1,28 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>💻Administrator page</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💻 Master Admin | User Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body lang="en">
-    <header>
-     
-    </header>
-    <main>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+    <nav class="bg-white border-b border-gray-200 py-4 px-6 shadow-sm">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">
+                Admin<span class="text-indigo-600">Control</span>
+            </h1>
+            
+            <div id="status-badge" class="bg-gray-800 rounded-full px-4 py-1.5 flex items-center shadow-md">
+                <span id="status-dot" class="w-2 h-2 rounded-full bg-red-400 mr-2 animate-pulse"></span>
+                <span id="status-text" class="text-white text-[10px] font-black uppercase tracking-widest">Locked</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center justify-center p-6 text-gray-800">
         
-         <h1>Administrator page</h1>
+        <div id="login-section" class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 transition-all">
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 bg-indigo-50 rounded-2xl mb-4 text-indigo-600">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-1.116-13.583A17.18 17.18 0 0112 3c1.293 0 2.53.144 3.717.417m1.116 13.583A17.18 17.18 0 0012 21c-1.293 0-2.53-.144-3.717-.417m1.116-13.583A17.18 17.18 0 0112 3c1.293 0 2.53.144 3.717.417m1.116 13.583A17.18 17.18 0 0012 21c-1.293 0-2.53-.144-3.717-.417"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold">Master Login</h2>
+                <p class="text-sm text-gray-500 mt-1">Authorized personnel only</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="email" id="login-email" placeholder="Master Email" 
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <input type="password" id="login-password" placeholder="Master Password" 
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <button id="login-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
+                    Sign In
+                </button>
+            </div>
+        </div>
 
-    <div id="auth-forms">
-        <h2>Add new user</h2>
-        <input type="email" id="signup-email" placeholder="Email">
-        <input type="password" id="signup-password" placeholder="Password">
-        <button id="signup-button">Add</button>
+        <div id="admin-dashboard" class="hidden w-full max-w-4xl space-y-8 py-6">
+            
+            <div class="flex justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-black uppercase tracking-tight">User Management</h2>
+                    <p class="text-xs text-gray-400">Add or remove administrator accounts</p>
+                </div>
+                <button id="logout-button" class="text-xs font-bold text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-all uppercase tracking-widest">
+                    Logout
+                </button>
+            </div>
 
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center uppercase tracking-wider">
+                    <span class="w-2 h-4 bg-indigo-600 rounded-full mr-2"></span>
+                    Add New Administrator
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="email" id="signup-email" placeholder="New Account Email" 
+                        class="md:col-span-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    <input type="password" id="signup-password" placeholder="Set Password" 
+                        class="md:col-span-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    <button id="signup-button" class="md:col-span-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95">
+                        Add Account
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="font-bold text-gray-500 uppercase text-[10px] tracking-widest">Authorized Access List</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-gray-400 text-[10px] uppercase tracking-[0.2em] border-b border-gray-50 text-center">
+                                <th class="px-6 py-4 text-left">Email Address</th>
+                                <th class="px-6 py-4">Created On</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pills-table-body" class="divide-y divide-gray-50 text-sm">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </main>
-    <footer>
 
+    <footer class="bg-gray-900 py-10">
+        <p class="text-gray-600 text-[9px] text-center tracking-[0.4em] uppercase font-bold">
+            &copy; 2026 Management System &bull; Secure Protocol 
+        </p>
     </footer>
+
     <script type="module" src="adminpage.js"></script>
 </body>
 </html>

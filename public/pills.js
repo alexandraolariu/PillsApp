@@ -44,8 +44,7 @@ const bonFiscalModal = document.getElementById('bon-fiscal-modal');
 const bonFiscalContent = document.getElementById('bon-fiscal-content');
 const barcodeInput = document.getElementById('barcodeInput');
 
-// AI Analysis
-const patientAnalysisForm = document.getElementById('ai-analysis');
+
 
 // Edit pill form
 const editPillModal = document.getElementById('edit-pill-modal');
@@ -228,9 +227,6 @@ window.showPillDetails = function (id) {
         Prospect</a>`
     }
 
-
-
-
 }
 
 window.closeModal = function () {
@@ -286,8 +282,6 @@ window.openEditModal = function (pillId, name, quantity, expiryDate, price, indi
     }
 
     editPillModal.style.display = 'flex';
-
-    
 
 }
 
@@ -545,22 +539,6 @@ window.addByBarcode = function () {
         }
     });
 
-
-    // const barcode = barcodeInput.value.trim();
-    // if (!barcode) {
-    //     showMessage("Please enter a barcode.");
-    //     return;
-    // }
-
-
-    // const pillFound = allPills.find(p => p.codDeBare === barcode);
-
-    // if (pillFound) {
-    //     addToBasket(pillFound.id);
-    //     barcodeInput.value = ''; // Clear input after adding
-    // } else {
-    //     showMessage(`Pill with barcode "${barcode}" not found in stock.`);
-    // }
 };
 
 
@@ -578,7 +556,8 @@ async function saveReceipt(cartItems, total, paymentMethod) {
                 price: item.price
             })),
             totalAmount: total,
-            paymentMethod: paymentMethod
+            paymentMethod: paymentMethod,
+            onlineshop: false
         });
         console.log("Receipt saved!");
     } catch (e) {
@@ -725,6 +704,7 @@ addPillForm.addEventListener('submit', async (e) => {
     const pillProspectLink = document.getElementById('pillProspectLink').value;
     const pillCategory = document.getElementById('pillCategory').value;
     const prescriptionStatus = document.querySelector('input[name="prescriptionStatus"]:checked').value;
+    const isInOnlineShop = false;
 
 
     //image uploading to https://alexandra-olariu.imgbb.com/
@@ -776,6 +756,7 @@ addPillForm.addEventListener('submit', async (e) => {
             pillCategory,
             prescriptionStatus,
             finalImageUrl,
+            isInOnlineShop,        
             createdAt: new Date()
         });
 
