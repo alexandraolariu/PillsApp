@@ -45,6 +45,8 @@
                         placeholder="Search by name, indications, contraindications or form..." onkeyup="searchPills()">
                 </div>
 
+                
+
                 <!-- Pills Display Area -->
                 <div class="pillsDisplayArea">
                     <table id="pills-list-table">
@@ -452,6 +454,22 @@
                                     class="block text-gray-700 text-sm font-bold mb-2">Prospect Link:</label>
                                 <input type="text" id="editProspectLink"
                                     class="shadow appearance-none border rounded-lg w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="editPillImage" class="block text-gray-700 text-sm font-bold mb-2">
+                                    Product Image:
+                                </label>
+                                <input type="file" id="editPillImage" accept="image/*" class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-lg file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-green-50 file:text-green-700
+                            hover:file:bg-green-100
+                            border border-gray-300 rounded-lg shadow-sm
+                            cursor-pointer focus:outline-none bg-white">
+                                <p class="text-xs text-gray-500 mt-1">Leave empty if you don't want to change the
+                                    current image.</p>
                             </div>
 
 

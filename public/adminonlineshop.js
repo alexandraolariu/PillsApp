@@ -367,7 +367,7 @@ function renderPillRow(id, pill) {
     const textBtn = isOnline ? "Remove" : "Add";
 
     tableRow.innerHTML = `
-                <td class="pill-name font-bold cursor-pointer" onclick="showPillDetails('${id}')" data-label="Pill Name">${pill.name}</td>
+                <td class="pill-name font-bold cursor-pointer" data-label="Pill Name">${pill.name}</td>
                 <td class="pill-quantity" data-label="Quantity">${pill.quantity}</td>
                 <td class="expiry-date ${(new Date(pill.expiryDate) - new Date()) / (1000 * 60 * 60 * 24) <= 30 ? 'text-red' : ''}" data-label="Expiry Date">  ${pill.expiryDate}</td>
                 <td class="" data-label="Price ($)">$${pill.price.toFixed(2)}</td>

@@ -1,8 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-// 1. FIREBASE CONFIGURATION
 const firebaseConfig = {
     apiKey: "AIzaSyAUSrhM5gWbGgUg6DCcqxqCYV_3SF4DTa0",
     authDomain: "pillsproject.firebaseapp.com",
@@ -14,155 +12,103 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const auth = getAuth(app); 
 
-// Your Master Admin Email
 const MASTER_EMAIL = "alexandra.olariu2000@gmail.com";
 
-// 2. HTML ELEMENTS SELECTION
-const loginSection = document.getElementById('login-section');
-const adminDashboard = document.getElementById('admin-dashboard');
-const userTableBody = document.getElementById('pills-table-body');
-const signupEmailInp = document.getElementById('signup-email');
-const signupPassInp = document.getElementById('signup-password');
-const statusText = document.getElementById('status-text');
-const statusDot = document.getElementById('status-dot');
+// --- TOAST SYSTEM ---
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    const bgClass = type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
+    toast.className = `fixed top-5 left-1/2 transform -translate-x-1/2 ${bgClass} text-white px-6 py-3 rounded-xl shadow-xl font-medium text-sm z-[9999] transition-all duration-300`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3500);
+}
 
-// 3. AUTH STATE MANAGEMENT
+// 1. MONITOR SESSION & UPDATE STATUS BADGE
 onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // Security check: If a non-master user tries to stay logged in
-        if (user.email !== MASTER_EMAIL) {
-            signOut(auth);
-            alert("Access Denied! Only the Master Admin can access this panel.");
-            return;
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+
+    if (user && user.email === MASTER_EMAIL) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        
+        // Update top navigation badge to Active (Green)
+        if (dot && text) {
+            dot.className = "w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse";
+            text.innerText = "Active";
         }
-
-        // Show Dashboard
-        loginSection.classList.add('hidden');
-        adminDashboard.classList.remove('hidden');
-        updateStatusBadge("Master Admin", "bg-green-400");
         
-        // Load the users list from Database
-        loadUsersFromFirestore();
+        renderConsoleButton(); 
     } else {
-        // Show Login Screen
-        loginSection.classList.remove('hidden');
-        adminDashboard.classList.add('hidden');
-        updateStatusBadge("Locked", "bg-red-400");
-    }
-});
-
-// 4. LOGIN LOGIC (ONLY FOR MASTER)
-document.getElementById('login-button').addEventListener('click', async () => {
-    const email = document.getElementById('login-email').value;
-    const pass = document.getElementById('login-password').value;
-    
-    if (email !== MASTER_EMAIL) {
-        return alert("Access restricted to the Master Administrator.");
-    }
-
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-        alert("Login failed: Invalid email or password.");
-    }
-});
-
-// 5. CREATE NEW USER (Authentication + Database Sync)
-document.getElementById('signup-button').addEventListener('click', async () => {
-    const email = signupEmailInp.value;
-    const pass = signupPassInp.value;
-
-    if (!email || !pass) return alert("Please enter both email and password for the new user.");
-
-    try {
-        // A. Create user in Firebase Authentication (The list in your screenshot)
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const uid = userCredential.user.uid;
-
-        // B. Save user in Firestore "users" collection (For the website table)
-        await addDoc(collection(db, "users"), {
-            uid: uid,
-            email: email,
-            dateCreated: new Date().toLocaleDateString('en-US'),
-            role: "admin"
-        });
-
-        alert(`User ${email} created successfully!`);
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('admin-dashboard').classList.add('hidden');
         
-        // Reset inputs
-        signupEmailInp.value = "";
-        signupPassInp.value = "";
+        // Reset top navigation badge to Locked (Red)
+        if (dot && text) {
+            dot.className = "w-2 h-2 rounded-full bg-red-400 mr-2 animate-pulse";
+            text.innerText = "Locked";
+        }
+    }
+});
 
-        // Important: Re-syncing as Master Admin
-        alert("System will refresh to maintain Master Admin session.");
-        location.reload(); 
+// 2. CREATE USER (Isolated Background Process)
+document.getElementById('signup-button').addEventListener('click', async (e) => {
+    e.preventDefault(); 
+    const email = document.getElementById('signup-email').value;
+    const pass = document.getElementById('signup-password').value;
+
+    if (!email || !pass) return showToast("Please fill in both fields!", "error");
+
+    const tempApp = initializeApp(firebaseConfig, "TempApp_" + Date.now());
+    const tempAuth = getAuth(tempApp);
+
+    try {
+        await setPersistence(tempAuth, inMemoryPersistence);
+        await createUserWithEmailAndPassword(tempAuth, email, pass);
+        
+        showToast("Account successfully created in Firebase!", "success");
+        document.getElementById('signup-email').value = '';
+        document.getElementById('signup-password').value = '';
 
     } catch (error) {
-        alert("Error creating user: " + error.message);
+        showToast("Error: " + error.message, "error");
+    } finally {
+        await deleteApp(tempApp);
     }
 });
 
-// 6. LOAD TABLE DATA FROM FIRESTORE
-async function loadUsersFromFirestore() {
-    if (!userTableBody) return;
-    userTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">Loading records...</td></tr>';
+// 3. GENERATE EXTERNAL LINK BUTTON WITH ICON
+function renderConsoleButton() {
+    const wrapper = document.getElementById('console-link-wrapper');
+    if (!wrapper) return;
     
-    try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        userTableBody.innerHTML = ''; 
-
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const row = `
-                <tr class="hover:bg-gray-50/80 transition-all border-b border-gray-100">
-                    <td class="px-6 py-4">
-                        <span class="font-semibold text-gray-700 text-xs">${data.email}</span>
-                    </td>
-                    <td class="px-6 py-4 text-center text-[10px] text-gray-400 font-mono">
-                        ${data.dateCreated || 'N/A'}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="removeUser('${docSnap.id}')" class="text-red-400 hover:text-red-600 p-2 transition-colors">
-                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            userTableBody.innerHTML += row;
-        });
-
-        if (querySnapshot.empty) {
-            userTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">No users found in database.</td></tr>';
-        }
-    } catch (e) {
-        console.error("Load Error:", e);
-    }
+    wrapper.innerHTML = `
+        <a 
+            href="https://console.firebase.google.com/project/pillsproject/authentication/users" 
+            target="_blank" 
+            class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-95"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+            Open Firebase Console
+        </a>
+    `;
 }
 
-// 7. DELETE USER FROM DATABASE
-window.removeUser = async (docId) => {
-    if(confirm("Are you sure you want to remove this user from the records?")) {
-        try {
-            await deleteDoc(doc(db, "users", docId));
-            loadUsersFromFirestore(); 
-        } catch (error) {
-            alert("Error deleting user: " + error.message);
-        }
-    }
-};
-
-// 8. LOGOUT
-document.getElementById('logout-button').addEventListener('click', () => {
-    signOut(auth);
+// 4. MASTER AUTH CONTROL
+document.getElementById('login-button').addEventListener('click', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    signInWithEmailAndPassword(auth, email, pass)
+        .then(() => showToast("Access Granted. Welcome back!", "success"))
+        .catch(() => showToast("Invalid Master Credentials!", "error"));
 });
 
-// UI STATUS UPDATE
-function updateStatusBadge(text, colorClass) {
-    if(statusText) statusText.innerText = text;
-    if(statusDot) statusDot.className = `w-2 h-2 rounded-full mr-2 animate-pulse ${colorClass}`;
-}
+document.getElementById('logout-button').addEventListener('click', () => {
+    signOut(auth).then(() => showToast("Logged out secure session.", "success"));
+});

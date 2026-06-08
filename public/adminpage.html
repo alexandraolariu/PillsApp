@@ -53,7 +53,7 @@
             <div class="flex justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                 <div>
                     <h2 class="text-xl font-black uppercase tracking-tight">User Management</h2>
-                    <p class="text-xs text-gray-400">Add or remove administrator accounts</p>
+                    <p class="text-xs text-gray-400">Add or manage administrator accounts</p>
                 </div>
                 <button id="logout-button" class="text-xs font-bold text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-all uppercase tracking-widest">
                     Logout
@@ -76,24 +76,13 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-                    <h3 class="font-bold text-gray-500 uppercase text-[10px] tracking-widest">Authorized Access List</h3>
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center">
+                <div class="px-6 py-2 mb-4">
+                    <h3 class="font-bold text-gray-500 uppercase text-[10px] tracking-widest">Master Directory Control</h3>
+                    <p class="text-gray-400 text-xs mt-2">To view active users, disable logs, or perform bulk deletions, launch the central control directory dashboard.</p>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="text-gray-400 text-[10px] uppercase tracking-[0.2em] border-b border-gray-50 text-center">
-                                <th class="px-6 py-4 text-left">Email Address</th>
-                                <th class="px-6 py-4">Created On</th>
-                                <th class="px-6 py-4 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pills-table-body" class="divide-y divide-gray-50 text-sm">
-                            </tbody>
-                    </table>
-                </div>
+                <div id="console-link-wrapper" class="py-4"></div>
             </div>
 
         </div>

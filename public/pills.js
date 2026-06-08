@@ -61,6 +61,7 @@ const editPillCodDeBareInput = document.getElementById('editPillCodDeBare');
 const editActiveSubstanceInput = document.getElementById('editActiveSubstance');
 const editProspectLinkInput = document.getElementById('editProspectLink');
 const editCategoryInput = document.getElementById('editCategory');
+const editPillImageInput = document.getElementById('editPillImage');
 // const editPrescriptionStatusInput = document.querySelector('input[name="editPrescriptionStatus"]:checked').value;
 
 // Modal text
@@ -159,13 +160,6 @@ function truncateText(text, maxLength = 30) {
 
 
 // --- Adding Pills in the Table ---
-// removed things:
-/*
-<td class="" data-label="Barcode">${pill.codDeBare || 'N/A'}</td>
-<td class="pill-indication" data-label="Indications" title="${pill.indications || 'N/A'}"> ${truncateText(pill.indications)} </td>
-<td class="pill-contraindication" data-label="Contraindications" title="${pill.contraindications || 'N/A'}">${truncateText(pill.contraindications)}</td>
-*/
-
 function renderPillRow(id, pill) {
     const tableRow = document.createElement('tr');
     tableRow.id = `pill-${id}`;
@@ -179,7 +173,7 @@ function renderPillRow(id, pill) {
                 <td class="" data-label="Prescription Status">${pill.prescriptionStatus || 'N/A'}</td>
                 <td class="" data-label="Active Substance">${pill.pillActiveSubstance || 'N/A'}</td>
                 <td class="table-actions">
-                    <button onclick="openEditModal('${id}', '${pill.name}', ${pill.quantity}, '${pill.expiryDate}', ${pill.price}, '${pill.indications || ''}', '${pill.contraindications || ''}', '${pill.form || ''}', '${pill.codDeBare || ''}', '${pill.pillCategory || ''}', '${pill.prescriptionStatus || ''}', '${pill.pillActiveSubstance || ''}', '${pill.pillProspectLink || ''}')"
+                    <button onclick="openEditModal('${id}', '${pill.name}', ${pill.quantity}, '${pill.expiryDate}', ${pill.price}, '${pill.indications || ''}', '${pill.contraindications || ''}', '${pill.form || ''}', '${pill.codDeBare || ''}', '${pill.pillCategory || ''}', '${pill.prescriptionStatus || ''}', '${pill.pillActiveSubstance || ''}', '${pill.pillProspectLink || ''}' )"
                             class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Edit</button>
                     <button onclick="deletePill('${id}')"
                             class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-3 rounded-lg transition duration-150 ease-in-out shadow-sm mr-2">Delete</button>
@@ -261,6 +255,84 @@ window.closeEditModal = function () {
     editPillModal.style.display = 'none';
 }
 
+// window.openEditModal = function (pillId, name, quantity, expiryDate, price, indications, contraindications, form, codDeBare, category, prescriptionStatus, activeSubstance, prospectLink, editPillImageInput) {
+//     editPillIdInput.value = pillId;
+//     editPillNameInput.value = name;
+//     editPillQuantityInput.value = quantity;
+//     editPillExpiryDateInput.value = expiryDate;
+//     editPillPriceInput.value = price;
+//     editPillIndicationsInput.value = indications || '';
+//     editPillContraindicationsInput.value = contraindications || '';
+//     editPillFormInput.value = form || '';
+//     editPillCodDeBareInput.value = codDeBare || '';
+//     editCategoryInput.value = category || '';
+//     editActiveSubstanceInput.value = activeSubstance || '';
+//     editProspectLinkInput.value = prospectLink || '';
+//     if (editPillImageInput) {
+//         editPillImageInput.value = '';
+//     }
+
+//     if (prescriptionStatus) {
+//         const radioToSelect = document.querySelector(`input[name="editPrescriptionStatus"][value="${prescriptionStatus}"]`);
+//         if (radioToSelect) {
+//             radioToSelect.checked = true;
+//         }
+//     }
+
+//     editPillModal.style.display = 'flex';
+
+// }
+
+// editPillForm.addEventListener('submit', async (e) => {
+//     e.preventDefault();
+//     if (!userId) {
+//         showMessage("Please wait for authentication to complete.");
+//         return;
+//     }
+
+//     const pillId = editPillIdInput.value;
+//     const name = editPillNameInput.value;
+//     const quantity = parseInt(editPillQuantityInput.value);
+//     const expiryDate = editPillExpiryDateInput.value;
+//     const price = parseFloat(editPillPriceInput.value);
+//     const indications = editPillIndicationsInput.value;
+//     const contraindications = editPillContraindicationsInput.value;
+//     const form = editPillFormInput.value;
+//     const codDeBare = editPillCodDeBareInput.value;
+//     const pillActiveSubstance = editActiveSubstanceInput.value;
+//     const pillProspectLink = editProspectLinkInput.value;
+//     const pillCategory = editCategoryInput.value;
+//     const prescriptionStatus = document.querySelector('input[name="editPrescriptionStatus"]:checked').value;
+
+//     if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
+//         showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
+//         return;
+//     }
+
+//     try {
+//         const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, pillId);
+//         await updateDoc(pillDocRef, {
+//             name,
+//             quantity,
+//             expiryDate,
+//             price,
+//             indications,
+//             contraindications,
+//             form,
+//             codDeBare,
+//             pillActiveSubstance,
+//             pillProspectLink,
+//             pillCategory,
+//             prescriptionStatus
+//         });
+//         showMessage("Pill updated successfully!");
+//         closeEditModal();
+//     } catch (error) {
+//         console.error("Error updating pill:", error);
+//         showMessage(`Error updating pill: ${error.message}`);
+//     }
+// });
+
 window.openEditModal = function (pillId, name, quantity, expiryDate, price, indications, contraindications, form, codDeBare, category, prescriptionStatus, activeSubstance, prospectLink) {
     editPillIdInput.value = pillId;
     editPillNameInput.value = name;
@@ -269,11 +341,17 @@ window.openEditModal = function (pillId, name, quantity, expiryDate, price, indi
     editPillPriceInput.value = price;
     editPillIndicationsInput.value = indications || '';
     editPillContraindicationsInput.value = contraindications || '';
-    editPillFormInput.value = form || '';
+    editPillFormInput.value = form || ''; 
     editPillCodDeBareInput.value = codDeBare || '';
     editCategoryInput.value = category || '';
     editActiveSubstanceInput.value = activeSubstance || '';
     editProspectLinkInput.value = prospectLink || '';
+    
+    // Resetează fișierul selectat anterior când se deschide modalul
+    if (editPillImageInput) {
+        editPillImageInput.value = '';
+    }
+
     if (prescriptionStatus) {
         const radioToSelect = document.querySelector(`input[name="editPrescriptionStatus"][value="${prescriptionStatus}"]`);
         if (radioToSelect) {
@@ -282,9 +360,7 @@ window.openEditModal = function (pillId, name, quantity, expiryDate, price, indi
     }
 
     editPillModal.style.display = 'flex';
-
 }
-
 editPillForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!userId) {
@@ -304,7 +380,9 @@ editPillForm.addEventListener('submit', async (e) => {
     const pillActiveSubstance = editActiveSubstanceInput.value;
     const pillProspectLink = editProspectLinkInput.value;
     const pillCategory = editCategoryInput.value;
-    const prescriptionStatus = document.querySelector('input[name="editPrescriptionStatus"]:checked').value;
+    
+    const prescriptionStatusElement = document.querySelector('input[name="editPrescriptionStatus"]:checked');
+    const prescriptionStatus = prescriptionStatusElement ? prescriptionStatusElement.value : 'OTC';
 
     if (!name || isNaN(quantity) || !expiryDate || isNaN(price)) {
         showMessage("Please fill in all required fields correctly (Name, Quantity, Expiry Date, Price).");
@@ -312,8 +390,8 @@ editPillForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, pillId);
-        await updateDoc(pillDocRef, {
+        // Obiectul cu datele de text care vor fi salvate
+        const updatedData = {
             name,
             quantity,
             expiryDate,
@@ -326,7 +404,38 @@ editPillForm.addEventListener('submit', async (e) => {
             pillProspectLink,
             pillCategory,
             prescriptionStatus
-        });
+        };
+
+        // Verificăm dacă ai selectat o imagine în input-ul tău cu id="pillImage"
+        const imageFile = editPillImageInput ? editPillImageInput.files[0] : null;
+
+        if (imageFile) {
+            showMessage("Uploading new image, please wait...");
+
+            // Pregătim datele pentru trimiterea către ImgBB
+            const formData = new FormData();
+            formData.append("image", imageFile);
+
+            // Facem cererea către API-ul ImgBB folosind cheia ta globală
+            const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const imgbbResult = await imgbbResponse.json();
+
+            if (imgbbResult.success) {
+                // Adăugăm URL-ul imaginii în obiectul de update pentru Firestore
+                updatedData.finalImageUrl = imgbbResult.data.url;
+            } else {
+                throw new Error("Failed to upload image to ImgBB.");
+            }
+        }
+
+        // Trimitem toate actualizările în Firestore
+        const pillDocRef = doc(db, `artifacts/${appId}/users/${userId}/pills_stock`, pillId);
+        await updateDoc(pillDocRef, updatedData);
+        
         showMessage("Pill updated successfully!");
         closeEditModal();
     } catch (error) {
@@ -334,8 +443,6 @@ editPillForm.addEventListener('submit', async (e) => {
         showMessage(`Error updating pill: ${error.message}`);
     }
 });
-
-
 // --- Delete Pill ---
 window.deletePill = async function (pillId) {
     if (!userId) {
@@ -756,7 +863,7 @@ addPillForm.addEventListener('submit', async (e) => {
             pillCategory,
             prescriptionStatus,
             finalImageUrl,
-            isInOnlineShop,        
+            isInOnlineShop,
             createdAt: new Date()
         });
 
