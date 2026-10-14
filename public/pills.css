@@ -60,11 +60,14 @@ main {
     box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
 }
 
-#searchPills {
-    margin-top: 10px;
+#searchPillsContainer {
+    margin: 30px;
+    margin-bottom: 0;
     padding: 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(128, 128, 128, 0.527);
+    background-color: rgba(128, 128, 128, 0.13);
+    border-radius: 10px 10px 0 0;
+    box-shadow: inset 0px 5px 10px -5px rgba(0, 0, 0, 0.15);    border-bottom: none;
+    
 }
 
 .pillsDisplayArea {
@@ -73,12 +76,13 @@ main {
     overflow-x: auto;
     /* Enable horizontal scrolling */
     padding: 30px;
-    padding-top: 0;
     margin: 30px;
+    margin-top: 0;
     background-color: rgba(128, 128, 128, 0.13);
-    border-radius: 10px;
-    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 10px 10px;
+    box-shadow: inset 0px -5px 10px -5px rgba(0, 0, 0, 0.15);
     height: 400px;
+    border-top: none;
 }
 
 table {
